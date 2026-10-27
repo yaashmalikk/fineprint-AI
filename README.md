@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FinePrint AI ⚖️
 
-## Getting Started
+> **Statutory Indian Employment & Tenancy Contract Auditor**  
+> Audits employment offer letters, service agreement bonds, and rental deeds against the **Indian Contract Act, 1872** (Section 27 & 74), AICTE/UGC certificate retention directives, and Supreme Court legal precedents.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Features
+
+- **Procedural CloudShader Hero**: Aceternity UI WebGL volumetric cloud shader landing page.
+- **Python `pypdf` Extraction**: Full-fidelity page stream and clause extraction.
+- **Live Gemini AI Legal Reasoning**: Powered by Google Gemini with statutory legal heuristics fallback.
+- **Section 27 Restraint of Trade**: Identifies void post-employment non-compete clauses (*Percept D'Mark v Zaheer Khan*).
+- **Section 74 Unreasonable Penalties**: Flags unenforceable liquidated damages and bond penalties without proof of actual training loss.
+- **AI Counter-Draft Shield**: Generates customizable HR counter-proposal emails with legal citations and Markdown export.
+- **Interactive 3D Bento Stack**: Holographic tilt agreement cards, SVG litigation exposure gauge, and clause breakdown.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Node.js 18+
+- Python 3.9+ with `pypdf`:
+  ```bash
+  pip install pypdf
+  ```
+
+### 2. Environment Setup
+Create a `.env.local` file:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Run Development Server
+```bash
+npm install
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🌐 Deployment (Vercel)
 
-To learn more about Next.js, take a look at the following resources:
+Next.js apps with API routes and backend processing should be deployed on [Vercel](https://vercel.com):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Import `fineprint-AI` on [vercel.com/new](https://vercel.com/new).
+2. Add Environment Variable:
+   - `GEMINI_API_KEY` = `your_key`
+3. Click **Deploy**.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📜 Legal Disclaimers
+*FinePrint AI is an automated legal compliance auditor and informational research assistant. It does not constitute formal legal counsel.*
