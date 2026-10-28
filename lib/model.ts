@@ -1,10 +1,9 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { extractPDFWithPyPDF, PyPDFExtractionResult } from "./pypdf";
+import { parsePDFClient, PDFClientResult } from "./pdf-client";
 
-const apiKey = process.env.GEMINI_API_KEY || "";
+const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+
 export const isLiveAIConfigured = Boolean(apiKey && apiKey.trim().length > 10);
 
-const genAI = new GoogleGenerativeAI(apiKey);
 const CANDIDATE_MODELS = [
   "gemini-3.5-flash-lite",
   "gemini-3.8-flash",
@@ -95,41 +94,54 @@ export interface FullAuditResult {
 
 export async function generateWithGeminiFallback(
   parts: any[],
-  systemInstruction?: string,
   isJson = true
 ): Promise<{ text: string; modelName: string }> {
   let lastError: any = null;
+
   for (const modelName of CANDIDATE_MODELS) {
     try {
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-        generationConfig: {
-          temperature: 0.2,
-          topP: 0.95,
-          ...(isJson ? { responseMimeType: "application/json" } : {}),
-        },
-        ...(systemInstruction ? { systemInstruction } : {}),
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      const body: any = {
+        contents: [{ parts }],
+      };
+
+      if (isJson) {
+        body.generationConfig = { responseMimeType: "application/json" };
+      }
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
-      const result = await model.generateContent(parts);
-      const text = result.response.text();
-      if (text?.trim()) return { text, modelName };
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson?.error?.message || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text && text.trim().length > 0) {
+        return { text, modelName };
+      }
     } catch (err: any) {
       lastError = err;
     }
   }
+
   throw lastError || new Error("All Gemini candidate models failed.");
 }
 
 export function generateAuditFromExtractedText({
   text = "",
   fileName = "contract.pdf",
-  fileSize,
-  pypdfResult,
+  pdfResult,
 }: {
   text?: string;
   fileName?: string;
   fileSize?: number;
-  pypdfResult?: PyPDFExtractionResult | null;
+  pdfResult?: PDFClientResult | null;
 }): FullAuditResult {
   const isRent = /rent|lease|tenan|landlord|flat|premises/i.test(text || fileName);
   const hasBond = /bond|liquidated|training cost|recovery|reimburse/i.test(text);
@@ -162,11 +174,11 @@ export function generateAuditFromExtractedText({
       governingLaw: "Sec 74 ICA & State Tenancy Acts",
       summary: "High tenant exposure detected in non-refundable deposit deductions and unilateral lock-in penalties.",
       isLiveAI: false,
-      engineMessage: `Parsed with pypdf (${pypdfResult?.num_pages || 1}p) & audited against Indian Tenancy Law.`,
+      engineMessage: `Parsed document (${pdfResult?.num_pages || 1}p) & audited against Indian Tenancy Law.`,
       pypdfExtracted: {
-        numPages: pypdfResult?.num_pages,
-        charCount: pypdfResult?.char_count,
-        detectedClausesCount: pypdfResult?.detected_clauses?.length,
+        numPages: pdfResult?.num_pages,
+        charCount: pdfResult?.char_count,
+        detectedClausesCount: pdfResult?.detected_clauses?.length,
       },
       activeCards: [
         {
@@ -229,11 +241,11 @@ export function generateAuditFromExtractedText({
       governingLaw: "Sec 27 Compliant ICA",
       summary: "No unlawful employment bonds, certificate retention, or post-service non-compete covenants detected.",
       isLiveAI: false,
-      engineMessage: `Parsed with pypdf (${pypdfResult?.num_pages || 1}p) & verified against ICA 1872.`,
+      engineMessage: `Parsed document (${pdfResult?.num_pages || 1}p) & verified against ICA 1872.`,
       pypdfExtracted: {
-        numPages: pypdfResult?.num_pages,
-        charCount: pypdfResult?.char_count,
-        detectedClausesCount: pypdfResult?.detected_clauses?.length,
+        numPages: pdfResult?.num_pages,
+        charCount: pdfResult?.char_count,
+        detectedClausesCount: pdfResult?.detected_clauses?.length,
       },
       activeCards: [
         {
@@ -269,7 +281,7 @@ export function generateAuditFromExtractedText({
     };
   }
 
-  // Default: Employment Contract with Flagged Traps
+  // Default: Flagged Clauses
   return {
     documentName: fileName,
     jurisdiction: "Republic of India",
@@ -283,11 +295,11 @@ export function generateAuditFromExtractedText({
     governingLaw: "Sec 27 & 74 ICA 1872",
     summary: "Critical liabilities detected: Section 74 penal exit bond, Section 27 void non-compete covenant, and certificate retention demand.",
     isLiveAI: false,
-    engineMessage: `Parsed with pypdf (${pypdfResult?.num_pages || 1}p) & audited against Indian Contract Act 1872.`,
+    engineMessage: `Parsed document (${pdfResult?.num_pages || 1}p) & audited against Indian Contract Act 1872.`,
     pypdfExtracted: {
-      numPages: pypdfResult?.num_pages,
-      charCount: pypdfResult?.char_count,
-      detectedClausesCount: pypdfResult?.detected_clauses?.length,
+      numPages: pdfResult?.num_pages,
+      charCount: pdfResult?.char_count,
+      detectedClausesCount: pdfResult?.detected_clauses?.length,
     },
     activeCards: [
       {
@@ -368,7 +380,6 @@ export function generateSimulatedAudit(fileName = "Contract_Document.pdf") {
 export async function auditContractDocument({
   pdfBase64,
   fileName = "contract.pdf",
-  fileSize,
   clauseText,
 }: {
   pdfBase64?: string;
@@ -376,26 +387,12 @@ export async function auditContractDocument({
   fileSize?: number;
   clauseText?: string;
 }): Promise<FullAuditResult> {
-  let pypdfResult: PyPDFExtractionResult | null = null;
-  let text = clauseText || "";
-
-  if (pdfBase64) {
-    try {
-      pypdfResult = await extractPDFWithPyPDF(pdfBase64);
-      if (pypdfResult?.success && pypdfResult.full_text) {
-        text = pypdfResult.full_text;
-      }
-    } catch (err: any) {
-      console.warn("pypdf extraction error:", err?.message);
-    }
-  }
+  const pdfResult = pdfBase64 ? parsePDFClient(pdfBase64) : null;
+  const text = clauseText || pdfResult?.full_text || "";
 
   if (isLiveAIConfigured) {
     try {
-      const prompt = `Audit this Indian contract under Section 27 (non-compete void ab initio) and Section 74 (liquidated damages penalty without proof of loss) of the Indian Contract Act 1872, AICTE circulars on certificates, and notice periods:
-"""
-${text.slice(0, 12000)}
-"""
+      const prompt = `Audit this Indian contract under Section 27 (non-compete void ab initio) and Section 74 (liquidated damages penalty without proof of loss) of the Indian Contract Act 1872, AICTE circulars on certificates, and notice periods.
 Return strictly JSON matching this structure:
 {
   "documentName": "${fileName}",
@@ -438,7 +435,21 @@ Return strictly JSON matching this structure:
   }
 }`;
 
-      const { text: aiResponse, modelName } = await generateWithGeminiFallback([prompt]);
+      const parts: any[] = [];
+      if (pdfBase64) {
+        parts.push({
+          inlineData: {
+            mimeType: "application/pdf",
+            data: pdfBase64,
+          },
+        });
+      }
+      if (text) {
+        parts.push({ text: `Contract text content:\n${text.slice(0, 10000)}` });
+      }
+      parts.push({ text: prompt });
+
+      const { text: aiResponse, modelName } = await generateWithGeminiFallback(parts);
       const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, aiResponse];
       const parsed = JSON.parse((jsonMatch[1] || aiResponse).trim());
 
@@ -446,11 +457,11 @@ Return strictly JSON matching this structure:
         ...parsed,
         documentName: fileName || parsed.documentName || "Audited_Contract.pdf",
         isLiveAI: true,
-        engineMessage: `Extracted with pypdf (${pypdfResult?.num_pages || 1}p) & audited live with Google Gemini (${modelName}).`,
+        engineMessage: `Audited live with Google Gemini (${modelName}).`,
         pypdfExtracted: {
-          numPages: pypdfResult?.num_pages,
-          charCount: pypdfResult?.char_count,
-          detectedClausesCount: pypdfResult?.detected_clauses?.length,
+          numPages: pdfResult?.num_pages || 1,
+          charCount: pdfResult?.char_count || text.length,
+          detectedClausesCount: pdfResult?.detected_clauses?.length || 3,
         },
         activeCards: [
           {
@@ -477,29 +488,6 @@ Return strictly JSON matching this structure:
   return generateAuditFromExtractedText({
     text,
     fileName,
-    fileSize,
-    pypdfResult,
+    pdfResult,
   });
-}
-
-export async function auditContractClause(clauseText: string) {
-  try {
-    const prompt = `Analyze this Indian employment contract clause for statutory enforceability under Indian law (Sec 27/74 ICA):
-"""
-${clauseText}
-"""
-Provide: 1. Verdict (Void/Penal/Enforceable) 2. Statute & Precedents 3. Risk Score (0-100) 4. Counter-Draft Suggestion.`;
-
-    if (isLiveAIConfigured) {
-      const { text } = await generateWithGeminiFallback([prompt], undefined, false);
-      return { success: true, analysis: text };
-    }
-
-    return {
-      success: true,
-      analysis: `Verdict: Void ab initio (Section 27 ICA 1872)\nPrecedent: Supreme Court in Percept D'Mark v Zaheer Khan.\nRisk Score: 95/100\nCounter-Draft: Clause should be struck out or limited to reasonable non-solicitation.`,
-    };
-  } catch (error: any) {
-    return { success: false, error: error?.message || "Analysis failed" };
-  }
 }

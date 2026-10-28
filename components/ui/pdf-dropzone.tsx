@@ -10,7 +10,11 @@ import {
   Scale,
   ArrowRight,
 } from "lucide-react";
-import { FullAuditResult } from "@/lib/model";
+import {
+  auditContractDocument,
+  generateSimulatedAudit,
+  FullAuditResult,
+} from "@/lib/model";
 
 interface PDFDropzoneProps {
   onAuditComplete: (result: FullAuditResult) => void;
@@ -92,20 +96,11 @@ export function PDFDropzone({
 
     const stepTimer = setInterval(() => {
       setScanStep((s) => (s < SCAN_STEPS.length - 1 ? s + 1 : s));
-    }, 1500);
+    }, 1200);
 
     try {
-      const res = await fetch("/api/audit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdfBase64, fileName, fileSize }),
-      });
-      const json = await res.json();
-      if (json.success && json.data) {
-        onAuditComplete(json.data);
-      } else {
-        throw new Error(json.error || "Audit failed to process");
-      }
+      const data = await auditContractDocument({ pdfBase64, fileName, fileSize });
+      onAuditComplete(data);
     } catch (err: any) {
       setError(err?.message || "Audit request failed");
     } finally {
@@ -114,17 +109,17 @@ export function PDFDropzone({
     }
   };
 
-  const loadSample = async (type: string) => {
+  const loadSample = (type: string) => {
     setIsAuditing(true);
     setError(null);
     try {
-      const res = await fetch("/api/audit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sampleType: type }),
-      });
-      const json = await res.json();
-      if (json.success && json.data) onAuditComplete(json.data);
+      const names: Record<string, string> = {
+        safe: "Fair_Startup_SDE2_Offer.pdf",
+        rent: "Bangalore_HSR_Rent_Agreement.pdf",
+        bond: "Tech_Corp_2Y_Service_Bond.pdf",
+      };
+      const data = generateSimulatedAudit(names[type] || "Acme_Corp_Offer_Letter.pdf");
+      onAuditComplete(data);
     } catch (err: any) {
       setError(err?.message || "Failed to load sample");
     } finally {
