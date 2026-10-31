@@ -5,7 +5,7 @@ const basePath =
   (process.env.GITHUB_ACTIONS === "true" ? "/fineprint-AI" : "");
 
 const nextConfig: NextConfig = {
-  // Removed `output: "export"` to enable API routes (/api/verify)
+  output: "export",
   basePath,
   images: {
     unoptimized: true,
