@@ -194,13 +194,13 @@ export function CloudShaderHeroDemo() {
           className={`rounded-2xl transition-all duration-500 backdrop-blur-2xl ${
             isDark
               ? "border border-zinc-800/80 bg-zinc-950/90 p-4 md:p-8 text-white shadow-[0_0_40px_-15px_rgba(255,255,255,0.07)] md:rounded-[2rem]"
-              : "border border-white/30 bg-black/80 p-3 shadow-2xl md:rounded-[2rem] md:p-6 text-foreground"
+              : "border border-sky-300/25 bg-gradient-to-b from-sky-900/35 via-sky-950/55 to-sky-950/75 p-4 md:p-8 shadow-[0_25px_60px_-15px_rgba(2,6,23,0.7),0_0_45px_rgba(56,189,248,0.14)] ring-1 ring-white/15 md:rounded-[2rem] text-white"
           }`}
         >
           {/* Engine Header */}
           <div
             className={`mb-6 flex flex-wrap items-center justify-between gap-3 border-b pb-4 transition-colors ${
-              isDark ? "border-zinc-800/80" : "border-white/10"
+              isDark ? "border-zinc-800/80" : "border-white/15"
             }`}
           >
             <div className="flex items-center gap-3">

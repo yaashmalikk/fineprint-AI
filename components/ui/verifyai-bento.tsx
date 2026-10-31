@@ -358,7 +358,7 @@ function EvidenceCard({
       </div>
 
       {/* Evidence Comparison */}
-      <div className="mt-3 rounded-lg bg-black/30 border border-white/10 p-3">
+      <div className="mt-3 rounded-lg bg-sky-950/40 border border-white/10 p-3">
         <p className="text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
           Evidence Comparison
         </p>
@@ -395,7 +395,7 @@ function SourceModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-sky-950/80 p-4 backdrop-blur-md">
       <div className="w-full max-w-2xl rounded-2xl border border-white/20 bg-slate-900 p-6 text-white shadow-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-2">
