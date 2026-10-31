@@ -2,26 +2,36 @@
 
 import * as React from "react";
 import { CloudShader } from "@/components/ui/cloud-shader";
-import { FinePrintBento } from "@/components/ui/fineprint-bento";
-import { PDFDropzone } from "@/components/ui/pdf-dropzone";
-import { FullAuditResult } from "@/lib/model";
-import { Scale, FileText, CheckCircle2, Sparkles, ArrowDown } from "lucide-react";
+import { VerifyAIBento } from "@/components/ui/verifyai-bento";
+import { VerifyInput } from "@/components/ui/verify-input";
+import type { VerificationResult, PipelineStage } from "@/lib/verify-types";
+import { MOCK_VERIFICATION_RESULT } from "@/lib/mock-data";
+import { Shield, CheckCircle2, Sparkles, ArrowDown, Search } from "lucide-react";
 
 export function CloudShaderHeroDemo() {
-  const [currentAudit, setCurrentAudit] = React.useState<FullAuditResult | null>(null);
+  const [currentResult, setCurrentResult] = React.useState<VerificationResult>(MOCK_VERIFICATION_RESULT);
+  const [isLiveAI, setIsLiveAI] = React.useState(false);
+  const [engineMessage, setEngineMessage] = React.useState<string | null>(null);
+  const [pipelineStage, setPipelineStage] = React.useState<PipelineStage | "complete">("complete");
   const [toast, setToast] = React.useState<string | null>(null);
-  const dropzoneRef = React.useRef<HTMLDivElement>(null);
+  const inputRef = React.useRef<HTMLDivElement>(null);
 
-  const handleAuditComplete = (result: FullAuditResult) => {
-    setCurrentAudit(result);
+  const handleVerificationComplete = (
+    result: VerificationResult,
+    live: boolean,
+    msg: string
+  ) => {
+    setCurrentResult(result);
+    setIsLiveAI(live);
+    setEngineMessage(msg);
     setToast(
-      `Audited "${result.documentName}" with pypdf (${result.pypdfExtracted?.numPages || 1} pages parsed)`
+      `Verified ${result.claims.length} claims — Credibility: ${result.overall_credibility_score}/100`
     );
     setTimeout(() => setToast(null), 4000);
   };
 
-  const scrollToDropzone = () => {
-    dropzoneRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToInput = () => {
+    inputRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -39,29 +49,35 @@ export function CloudShaderHeroDemo() {
       <nav className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 md:px-8">
         <div className="flex items-center gap-2.5">
           <div className="flex size-8 items-center justify-center rounded-lg bg-white/95 text-sky-700 shadow-sm ring-2 ring-white/30">
-            <Scale className="size-4" />
+            <Shield className="size-4" />
           </div>
           <span className="text-xl font-bold tracking-tight text-white drop-shadow-sm">
-            FinePrint AI
+            VerifyAI
           </span>
         </div>
 
         <div className="hidden items-center gap-8 text-sm font-medium text-white/90 md:flex">
-          <a href="#audit" className="hover:text-white transition">PDF Auditor</a>
-          <a href="#audit" className="hover:text-white transition">Sec 27 & 74 ICA</a>
-          <a href="#audit" className="hover:text-white transition">Case Precedents</a>
+          <a href="#verify" className="hover:text-white transition">
+            Claim Verifier
+          </a>
+          <a href="#verify" className="hover:text-white transition">
+            Evidence RAG
+          </a>
+          <a href="#verify" className="hover:text-white transition">
+            Knowledge Base
+          </a>
           <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-mono text-white/90 border border-white/20">
             <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Python pypdf</span>
+            <span>NLP Pipeline</span>
           </div>
         </div>
 
         <button
           type="button"
-          onClick={scrollToDropzone}
+          onClick={scrollToInput}
           className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-sky-700 shadow-md transition hover:bg-white/90 hover:scale-105 active:scale-95"
         >
-          Upload Contract PDF
+          Verify Content
         </button>
       </nav>
 
@@ -69,29 +85,32 @@ export function CloudShaderHeroDemo() {
       <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-4 pt-10 text-center md:pt-16">
         <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-1.5 text-xs font-medium text-white backdrop-blur-md mb-5 shadow-sm">
           <Sparkles className="size-3.5 text-amber-300" />
-          <span>Indian Employment & Tenancy Bond Auditor</span>
+          <span>Evidence-Backed Misinformation & Claim Verification System</span>
         </div>
 
         <h1 className="text-4xl font-extrabold tracking-tight text-white drop-shadow-md sm:text-6xl lg:text-7xl">
-          Legal contract audit <br className="hidden md:block" /> above the clouds
+          Verify claims with <br className="hidden md:block" /> transparent evidence
         </h1>
 
         <p className="mt-6 max-w-2xl text-base text-white/95 drop-shadow-sm md:text-lg leading-relaxed">
-          Audit employment offer letters, service bonds, and rental deeds using Python{" "}
-          <strong className="font-semibold text-white underline decoration-white/40">pypdf</strong>. Detect illegal liquidated damages, marksheet retention, and void non-competes in seconds.
+          Extract factual claims from online content, retrieve credible sources via{" "}
+          <strong className="font-semibold text-white underline decoration-white/40">
+            semantic RAG
+          </strong>
+          , compare evidence, and present transparent assessments — no black-box AI verdicts.
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
           <button
             type="button"
-            onClick={scrollToDropzone}
+            onClick={scrollToInput}
             className="flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-bold text-sky-700 shadow-xl transition hover:-translate-y-0.5 hover:bg-white/90 active:scale-95"
           >
-            <span>Upload & Audit PDF</span>
+            <span>Start Verifying</span>
             <ArrowDown className="size-4" />
           </button>
           <a
-            href="#audit"
+            href="#verify"
             className="rounded-full border border-white/40 bg-white/10 px-7 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 hover:-translate-y-0.5"
           >
             Explore Dashboard
@@ -101,65 +120,54 @@ export function CloudShaderHeroDemo() {
 
       {/* Main Interactive Container */}
       <div
-        id="audit"
-        ref={dropzoneRef}
+        id="verify"
+        ref={inputRef}
         className="relative z-10 mx-auto mt-12 w-full max-w-6xl px-4 pb-20 md:mt-16 md:px-8"
       >
         <div className="rounded-2xl border border-white/30 bg-black/80 p-3 shadow-2xl backdrop-blur-2xl md:rounded-[2rem] md:p-6 text-foreground">
+          {/* Engine Header */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
             <div className="flex items-center gap-3">
-              <div className="flex size-9 items-center justify-center rounded-xl bg-red-600/20 text-red-400 ring-1 ring-red-500/30">
-                <Scale className="size-4.5" />
+              <div className="flex size-9 items-center justify-center rounded-xl bg-sky-600/20 text-sky-400 ring-1 ring-sky-500/30">
+                <Search className="size-4.5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">FinePrint AI Legal Engine</h3>
+                <h3 className="text-sm font-bold text-white">
+                  VerifyAI Verification Engine
+                </h3>
                 <p className="text-xs text-white/70">
-                  Drop your contract PDF to extract text with pypdf and audit under Indian law
+                  Paste content or upload a document to extract and verify claims
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              {currentAudit?.pypdfExtracted && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/15 px-3 py-1 font-mono text-xs text-blue-300">
-                  <FileText className="size-3.5" />
-                  pypdf: {currentAudit.pypdfExtracted.numPages || 1} pgs •{" "}
-                  {currentAudit.pypdfExtracted.charCount || 0} chars
+              {engineMessage && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 font-mono text-[11px] text-white/80">
+                  {engineMessage}
                 </span>
               )}
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1 font-mono text-xs text-emerald-300">
                 <span className="size-1.5 rounded-full bg-emerald-400" />
-                ICA 1872 Parser Active
+                NLP + RAG Pipeline Active
               </span>
             </div>
           </div>
 
+          {/* Input */}
           <div className="mb-6">
-            <PDFDropzone
-              onAuditComplete={handleAuditComplete}
-              currentDocumentName={currentAudit?.documentName}
+            <VerifyInput
+              onVerificationComplete={handleVerificationComplete}
+              onPipelineStageChange={setPipelineStage}
             />
           </div>
 
-          <FinePrintBento
-            documentName={currentAudit?.documentName}
-            jurisdiction={currentAudit?.jurisdiction}
-            governingAct={currentAudit?.governingAct}
-            overallRiskScore={currentAudit?.overallRiskScore}
-            unenforceableClausesCount={currentAudit?.unenforceableClausesCount}
-            liabilityTrapAmount={currentAudit?.liabilityTrapAmount}
-            activeCards={currentAudit?.activeCards}
-            violations={currentAudit?.violations}
-            clauseAllocations={currentAudit?.clauseAllocations}
-            auditLogs={currentAudit?.auditLogs}
-            counterDraft={currentAudit?.counterDraft}
-            pypdfExtracted={currentAudit?.pypdfExtracted}
-            isLiveAI={currentAudit?.isLiveAI}
-            engineNotice={currentAudit?.engineMessage}
-            onUploadClick={scrollToDropzone}
-            accent={currentAudit?.accent}
-            accentAmber={currentAudit?.accentAmber}
-            accentSafe={currentAudit?.accentSafe}
+          {/* Results Bento */}
+          <VerifyAIBento
+            result={currentResult}
+            isLiveAI={isLiveAI}
+            engineNotice={engineMessage || undefined}
+            pipelineStage={pipelineStage}
           />
         </div>
       </div>

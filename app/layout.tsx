@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FinePrint AI - Contract & Employment Bond Auditor",
+  title: "VerifyAI – Evidence-Backed Misinformation & Claim Verification",
   description:
-    "Audit Indian employment contracts, exit bonds, and rental agreements under Indian Contract Act 1872 with pypdf and Gemini AI.",
+    "Extract factual claims from online content, retrieve credible sources via semantic RAG, compare evidence, and present transparent assessments — no black-box AI verdicts.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
