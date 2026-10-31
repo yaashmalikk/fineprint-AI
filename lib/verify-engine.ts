@@ -16,6 +16,60 @@ import type {
 const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
 export const isLiveAIConfigured = Boolean(apiKey && apiKey.trim().length > 10);
 
+export function isGibberishOrDummy(text: string): { isInvalid: boolean; reason?: string } {
+  if (!text || !text.trim()) {
+    return { isInvalid: true, reason: "Text is empty. Please enter verifiable content." };
+  }
+
+  const lower = text.toLowerCase();
+
+  // 1. Lorem ipsum check
+  if (lower.includes("lorem ipsum") || lower.includes("dolor sit amet") || lower.includes("consectetur")) {
+    return { isInvalid: true, reason: "Dummy/Placeholder text (Lorem Ipsum) detected. No verifiable claims found." };
+  }
+
+  // 2. Too short check
+  if (text.trim().split(/\s+/).filter(Boolean).length < 15) {
+    return { isInvalid: true, reason: "Text is too short to extract verifiable legal or factual claims." };
+  }
+
+  // 3. Repetitive character / keyboard mash check
+  if (/(.)\1{6,}/.test(lower)) {
+    return { isInvalid: true, reason: "Repetitive gibberish pattern detected. No verifiable claims found." };
+  }
+
+  return { isInvalid: false };
+}
+
+export function createInvalidContentResult(reason: string, text: string): VerificationResult {
+  return {
+    content_type: "Unverifiable / Dummy Content",
+    overall_credibility_score: 0,
+    misinformation_verdict: `REJECTED: ${reason}`,
+    claims: [
+      {
+        claim_id: "REJECT-001",
+        claim_text: text.trim().slice(0, 180) + (text.length > 180 ? "..." : ""),
+        claim_category: "Factual",
+        verification_status: "DEBUNKED_MISINFORMATION",
+        conflict_score: 100,
+        evidence: {
+          source_title: "Automated Content Integrity Filter",
+          authority: "ClaimProof Verification Protocol",
+          statutory_reference: "NLP Claim Validity Standard",
+          official_text_excerpt: reason,
+          relevance_rank: 1,
+        },
+        evidence_comparison:
+          "The submitted text contains placeholder text, dummy content, or lacks sufficient verifiable factual or legal assertions to evaluate against statutory records.",
+        transparent_explanation:
+          "Verification rejected: Content must contain substantive, real-world claims (minimum 15 words) describing contractual terms, policies, or legal obligations. Dummy text cannot be verified as credible.",
+      },
+    ],
+    transparent_summary: `Verification halted: ${reason} Credibility rating is 0/100 because the content contains no verifiable claims.`,
+  };
+}
+
 const CANDIDATE_MODELS = [
   "gemini-3.5-flash-lite",
   "gemini-3.8-flash",
@@ -77,7 +131,7 @@ function localClaimExtraction(text: string): string[] {
 }
 
 function computeConflictScore(claimText: string, matchedEntries: ReturnType<typeof searchKnowledgeBase>): number {
-  if (matchedEntries.length === 0) return 30; // No evidence = uncertain
+  if (matchedEntries.length === 0) return 85; // No supporting evidence in statutory knowledge base = high conflict / unsupported claim
   const lower = claimText.toLowerCase();
 
   let contradictionSignals = 0;
@@ -85,7 +139,7 @@ function computeConflictScore(claimText: string, matchedEntries: ReturnType<type
   for (const flag of redFlags) {
     if (lower.includes(flag)) contradictionSignals++;
   }
-  return Math.min(99, 40 + contradictionSignals * 15);
+  return Math.min(99, 45 + contradictionSignals * 15);
 }
 
 function determineStatus(conflictScore: number): VerificationStatus {
@@ -131,18 +185,18 @@ function localVerification(contentText: string): VerificationResult {
             relevance_rank: 1,
           }
         : {
-            source_title: "No matching source found",
-            authority: "N/A",
-            statutory_reference: "N/A",
-            official_text_excerpt: "No credible source matched this claim in the local knowledge base.",
+            source_title: "No Statutory Evidence Found",
+            authority: "Unverified Claim Source",
+            statutory_reference: "No Corroborating Statutory Authority",
+            official_text_excerpt: "No credible statutory law, gazette circular, or judicial ruling in the ground-truth knowledge base supports this claim.",
             relevance_rank: 0,
           },
       evidence_comparison: topSource
         ? `The claim conflicts with ${topSource.statutory_reference}, which states a different legal position.`
-        : "No direct evidence found for comparison.",
+        : "Claim cannot be substantiated against statutory records or judicial precedents.",
       transparent_explanation: topSource
         ? `Based on ${topSource.authority}, this claim ${status === "VERIFIED" ? "aligns with" : "contradicts"} established law under ${topSource.statutory_reference}.`
-        : "This claim could not be verified against the local knowledge base.",
+        : "Uncorroborated claim: ClaimProof AI flags claims lacking primary source evidence as unverified rather than accepting them as facts.",
     });
   }
 
@@ -205,7 +259,10 @@ Key Indian legal references to use:
 - UGC 2018 Notification: Certificate retention banned
 - AICTE Circular: Original document retention prohibited
 - IPC Section 403 / BNS 316: Misappropriation of documents
-- Section 16 ICA: Undue influence in asymmetric contracts`;
+- Section 16 ICA: Undue influence in asymmetric contracts
+
+CRITICAL VERIFICATION INTEGRITY RULE:
+If the content contains placeholder text, dummy text, lorem ipsum, gibberish, or lacks real verifiable factual assertions, you MUST set overall_credibility_score to 0, misinformation_verdict to "REJECTED: Dummy or unverifiable content", and mark claims as DEBUNKED_MISINFORMATION with conflict_score: 100. NEVER return high credibility for placeholder or non-substantive text.`;
 
 export async function verifyContent(request: VerifyRequest): Promise<{
   result: VerificationResult;
@@ -222,11 +279,13 @@ export async function verifyContent(request: VerifyRequest): Promise<{
     }
   }
 
-  if (!contentText || contentText.trim().length < 20) {
+  // Content validation: Check for dummy/lorem ipsum, gibberish, or short text
+  const check = isGibberishOrDummy(contentText);
+  if (check.isInvalid) {
     return {
-      result: MOCK_VERIFICATION_RESULT,
+      result: createInvalidContentResult(check.reason || "Invalid content", contentText),
       isLiveAI: false,
-      engineMessage: "Loaded demonstration data (no content provided)",
+      engineMessage: check.reason || "Invalid content",
     };
   }
 

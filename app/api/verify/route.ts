@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { parsePDFClient } from "@/lib/pdf-client";
 import { searchKnowledgeBase } from "@/lib/knowledge-base";
 import { MOCK_VERIFICATION_RESULT } from "@/lib/mock-data";
+import { isGibberishOrDummy, createInvalidContentResult } from "@/lib/verify-engine";
 import type { VerificationResult, VerifiedClaim, VerificationStatus, ClaimCategory } from "@/lib/verify-types";
 
 const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || "";
@@ -52,7 +53,10 @@ Key legal references:
 - Percept D'Mark v Zaheer Khan (2006) 4 SCC 227
 - UGC 2018: Certificate retention banned
 - AICTE Circular: Document retention prohibited
-- IPC 403 / BNS 316: Misappropriation`;
+- IPC 403 / BNS 316: Misappropriation
+
+CRITICAL VERIFICATION INTEGRITY RULE:
+If the content is placeholder/dummy text (Lorem Ipsum), gibberish, or lacks verifiable real-world claims, return overall_credibility_score: 0, set misinformation_verdict to "REJECTED: Dummy or unverifiable content", and mark claims as DEBUNKED_MISINFORMATION with conflict_score: 100. NEVER return high credibility for placeholder or non-substantive text.`;
 
 async function callGemini(parts: unknown[]): Promise<{ text: string; modelName: string } | null> {
   if (!apiKey || apiKey.trim().length < 10) return null;
@@ -103,7 +107,7 @@ function localVerify(contentText: string): VerificationResult {
     for (const flag of redFlags) {
       if (lower.includes(flag)) signals++;
     }
-    const conflictScore = Math.min(99, matchedSources.length > 0 ? 40 + signals * 15 : 30);
+    const conflictScore = Math.min(99, matchedSources.length > 0 ? 45 + signals * 15 : 85);
     const status: VerificationStatus =
       conflictScore >= 80 ? "DEBUNKED_MISINFORMATION" : conflictScore >= 50 ? "MISLEADING" : "VERIFIED";
     const category: ClaimCategory =
@@ -173,11 +177,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!text || text.trim().length < 20) {
+    // Check for dummy text, lorem ipsum, or too-short input
+    const check = isGibberishOrDummy(text);
+    if (check.isInvalid) {
       return NextResponse.json({
-        result: MOCK_VERIFICATION_RESULT,
+        result: createInvalidContentResult(check.reason || "Invalid content", text),
         isLiveAI: false,
-        engineMessage: "Loaded demonstration data (insufficient content)",
+        engineMessage: check.reason || "Invalid content",
       });
     }
 

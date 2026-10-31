@@ -114,6 +114,9 @@ export function VerifyInput({
       });
       onPipelineStageChange("complete");
       onVerificationComplete(result, isLiveAI, engineMessage);
+      if (result.overall_credibility_score === 0) {
+        setError(engineMessage);
+      }
     } catch (err: unknown) {
       setError((err as Error)?.message || "Verification failed");
     } finally {
