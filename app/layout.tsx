@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VerifyAI – Evidence-Backed Misinformation & Claim Verification",
+  title: "ClaimProof AI – Evidence-Backed Misinformation & Claim Verification",
   description:
     "Extract factual claims from online content, retrieve credible sources via semantic RAG, compare evidence, and present transparent assessments — no black-box AI verdicts.",
 };

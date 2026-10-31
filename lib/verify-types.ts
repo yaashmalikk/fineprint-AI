@@ -1,4 +1,4 @@
-// VerifyAI – Core Types for the Claim Verification Pipeline
+// ClaimProof AI – Core Types for the Claim Verification Pipeline
 
 export type VerificationStatus = "DEBUNKED_MISINFORMATION" | "MISLEADING" | "VERIFIED";
 

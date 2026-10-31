@@ -1,35 +1,34 @@
-# FinePrint AI ⚖️
+# ClaimProof AI ⚖️
 
-> **Statutory Indian Employment & Tenancy Contract Auditor**  
-> Audits employment offer letters, service agreement bonds, and rental deeds against the **Indian Contract Act, 1872** (Section 27 & 74), AICTE/UGC certificate retention directives, and Supreme Court legal precedents.
+> **Autonomous Misinformation & Claim Verification Assistant**  
+> Extracts factual claims from online content and documents, retrieves relevant credible statutory sources via semantic RAG, compares evidence, and presents a transparent assessment rather than relying on unsupported black-box AI verdicts.
 
 ---
 
-## ✨ Features
+## ✨ Core Pipeline & Architecture
 
-- **Procedural CloudShader Hero**: Aceternity UI WebGL volumetric cloud shader landing page.
-- **Python `pypdf` Extraction**: Full-fidelity page stream and clause extraction.
-- **Live Gemini AI Legal Reasoning**: Powered by Google Gemini with statutory legal heuristics fallback.
-- **Section 27 Restraint of Trade**: Identifies void post-employment non-compete clauses (*Percept D'Mark v Zaheer Khan*).
-- **Section 74 Unreasonable Penalties**: Flags unenforceable liquidated damages and bond penalties without proof of actual training loss.
-- **AI Counter-Draft Shield**: Generates customizable HR counter-proposal emails with legal citations and Markdown export.
-- **Interactive 3D Bento Stack**: Holographic tilt agreement cards, SVG litigation exposure gauge, and clause breakdown.
+- **Stage 1: NLP Claim Extraction**: Parses raw content (social posts, text, PDFs) and extracts atomic factual/legal claims.
+- **Stage 2: Semantic RAG Retrieval**: Queries a ground-truth statutory knowledge base (Section 27 & 74 Indian Contract Act, UGC 2018 directives, Supreme Court rulings like *Percept D'Mark v Zaheer Khan*).
+- **Stage 3: Evidence Ranking & Contradiction Detection**: Directly compares claims against statutory provisions and computes an Evidence Conflict Index (0-100%).
+- **Stage 4: Transparent Assessment**: Side-by-side evidence comparison cards with primary source citations and official excerpts.
+- **Dual-Input Mode**: 
+  - *Mode A: Document & Contract Audit* (PDF/Image upload)
+  - *Mode B: Online Content & Post Verifier* (Social media, news, viral claims)
+- **Instant Demo Resilience**: 1-click preset samples for offline demonstration without API dependence.
+- **Action Dock**: One-click Markdown Dossier Export and Rebuttal / Counter-Notice Generator.
 
 ---
 
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- Node.js 18+
-- Python 3.9+ with `pypdf`:
-  ```bash
-  pip install pypdf
-  ```
+- Node.js 20+
 
 ### 2. Environment Setup
 Create a `.env.local` file:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ### 3. Run Development Server
@@ -42,16 +41,5 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🌐 Deployment (Vercel)
-
-Next.js apps with API routes and backend processing should be deployed on [Vercel](https://vercel.com):
-
-1. Import `fineprint-AI` on [vercel.com/new](https://vercel.com/new).
-2. Add Environment Variable:
-   - `GEMINI_API_KEY` = `your_key`
-3. Click **Deploy**.
-
----
-
-## 📜 Legal Disclaimers
-*FinePrint AI is an automated legal compliance auditor and informational research assistant. It does not constitute formal legal counsel.*
+## 📜 Disclaimer
+*ClaimProof AI is an evidence-backed verification and informational research assistant. It cites primary statutes and judicial rulings transparently and does not constitute formal legal counsel.*

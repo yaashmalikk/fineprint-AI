@@ -1,4 +1,4 @@
-// VerifyAI – Verification Engine
+// ClaimProof AI – Verification Engine
 // Client-side engine that performs claim extraction, RAG retrieval against the knowledge base,
 // evidence ranking, and transparent assessment. Falls back to mock data when AI is unavailable.
 
@@ -165,7 +165,7 @@ function localVerification(contentText: string): VerificationResult {
   };
 }
 
-const VERIFY_PROMPT = `You are VerifyAI, an autonomous misinformation and claim verification system. Your task is to:
+const VERIFY_PROMPT = `You are ClaimProof AI, an autonomous misinformation and claim verification system. Your task is to:
 
 1. EXTRACT distinct atomic factual/legal claims from the provided content.
 2. For each claim, RETRIEVE the most relevant credible statutory source from Indian law (Indian Contract Act 1872, Supreme Court rulings, UGC/AICTE directives, Labor Codes).

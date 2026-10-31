@@ -52,7 +52,7 @@ export function CloudShaderHeroDemo() {
             <Shield className="size-4" />
           </div>
           <span className="text-xl font-bold tracking-tight text-white drop-shadow-sm">
-            VerifyAI
+            ClaimProof AI
           </span>
         </div>
 
@@ -133,7 +133,7 @@ export function CloudShaderHeroDemo() {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-white">
-                  VerifyAI Verification Engine
+                  ClaimProof AI Verification Engine
                 </h3>
                 <p className="text-xs text-white/70">
                   Paste content or upload a document to extract and verify claims

@@ -1,4 +1,4 @@
-// VerifyAI – Ground-Truth Knowledge Base
+// ClaimProof AI – Ground-Truth Knowledge Base
 // Statutory laws, Supreme Court rulings, labor regulations, and official gazette notifications
 // used as the local verifiable evidence store for RAG-style retrieval.
 

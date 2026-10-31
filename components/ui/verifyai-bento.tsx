@@ -477,7 +477,7 @@ function ActionDock({
 
   const handleExport = () => {
     const lines = [
-      "# VerifyAI – Verified Audit Dossier",
+      "# ClaimProof AI – Verified Audit Dossier",
       "",
       `**Content Type:** ${result.content_type}`,
       `**Credibility Score:** ${result.overall_credibility_score}/100`,
@@ -513,7 +513,7 @@ function ActionDock({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "VerifyAI_Audit_Dossier.md";
+    a.download = "ClaimProof_AI_Audit_Dossier.md";
     a.click();
     URL.revokeObjectURL(url);
   };

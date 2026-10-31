@@ -1,4 +1,4 @@
-// VerifyAI – Mock Fallback Data for Instant Offline Demonstration
+// ClaimProof AI – Mock Fallback Data for Instant Offline Demonstration
 // Simulates the output of the full verification pipeline on a viral corporate misinformation sample.
 
 import type { VerificationResult } from "./verify-types";
