@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parsePDFClient } from "@/lib/pdf-client";
+import { parsePDFClient, parsePDFClientAsync } from "@/lib/pdf-client";
 import { searchKnowledgeBase } from "@/lib/knowledge-base";
 import { MOCK_VERIFICATION_RESULT } from "@/lib/mock-data";
 import { isGibberishOrDummy, createInvalidContentResult } from "@/lib/verify-engine";
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
       const extractedParts: string[] = [];
       for (let i = 0; i < fileList.length; i++) {
         const f = fileList[i];
-        const pdfResult = parsePDFClient(f.base64);
+        const pdfResult = await parsePDFClientAsync(f.base64);
         if (pdfResult.success && pdfResult.full_text) {
           extractedParts.push(`=== [Document ${i + 1}: ${f.name}] ===\n${pdfResult.full_text}`);
         } else {

@@ -45,7 +45,8 @@ export function VerifyInput({
   React.useEffect(() => {
     const onDragOver = (e: DragEvent) => {
       e.preventDefault();
-      if (e.dataTransfer?.types.includes("Files")) setIsDragging(true);
+      const hasFiles = e.dataTransfer?.types ? Array.from(e.dataTransfer.types).includes("Files") : false;
+      if (hasFiles) setIsDragging(true);
     };
     const onDragLeave = (e: DragEvent) => {
       e.preventDefault();
@@ -72,15 +73,22 @@ export function VerifyInput({
 
   const handleFiles = (files: FileList | File[]) => {
     setError(null);
-    const validTypes = [".pdf", ".png", ".jpg", ".jpeg", ".webp"];
+    const validExtensions = [".pdf", ".png", ".jpg", ".jpeg", ".webp"];
     const fileArray = Array.from(files);
     if (fileArray.length === 0) return;
 
-    const invalid = fileArray.filter(
-      (f) => !validTypes.some((ext) => f.name.toLowerCase().endsWith(ext))
-    );
+    const invalid = fileArray.filter((f) => {
+      const name = (f.name || "").toLowerCase();
+      const type = (f.type || "").toLowerCase();
+      const hasValidExt = validExtensions.some((ext) => name.endsWith(ext));
+      const hasValidMime = type.includes("pdf") || type.includes("image");
+      return !hasValidExt && !hasValidMime;
+    });
+
     if (invalid.length > 0) {
-      setError(`Unsupported file format for: ${invalid.map((f) => f.name).join(", ")}. Please upload PDF or image files.`);
+      setError(
+        `Unsupported file format for: ${invalid.map((f) => f.name).join(", ")}. Please upload PDF or image files.`
+      );
       return;
     }
 
@@ -94,17 +102,26 @@ export function VerifyInput({
       return new Promise<{ name: string; size: number; base64: string }>((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-          const b64 = (reader.result as string).split(",")[1] || "";
-          resolve({ name: file.name, size: file.size, base64: b64 });
+          const res = (reader.result as string) || "";
+          const b64 = res.includes(",") ? res.split(",")[1] : res;
+          resolve({ name: file.name, size: file.size, base64: b64 || "" });
+        };
+        reader.onerror = () => {
+          resolve({ name: file.name, size: file.size, base64: "" });
         };
         reader.readAsDataURL(file);
       });
     });
 
     Promise.all(readers).then((newItems) => {
+      const validItems = newItems.filter((item) => item.base64 && item.base64.length > 0);
+      if (validItems.length === 0 && newItems.length > 0) {
+        setError("Could not read uploaded document data. Please try selecting the file again.");
+        return;
+      }
       setSelectedFiles((prev) => {
         const existing = new Set(prev.map((p) => p.name));
-        const filtered = newItems.filter((item) => !existing.has(item.name));
+        const filtered = validItems.filter((item) => !existing.has(item.name));
         return [...prev, ...filtered];
       });
     });
@@ -143,8 +160,8 @@ export function VerifyInput({
       });
       onPipelineStageChange("complete");
       onVerificationComplete(result, isLiveAI, engineMessage);
-      if (result.overall_credibility_score === 0) {
-        setError(engineMessage);
+      if (result.is_valid_factual_content === false) {
+        setError(result.verdict_summary || engineMessage);
       }
     } catch (err: unknown) {
       setError((err as Error)?.message || "Verification failed");
@@ -181,7 +198,7 @@ export function VerifyInput({
     <div className={`relative ${className}`}>
       {/* Dragging Overlay */}
       {isDragging && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-sky-950/90 backdrop-blur-md p-6">
+        <div className="fixed inset-0 z-50 pointer-events-none flex flex-col items-center justify-center bg-sky-950/90 backdrop-blur-md p-6">
           <div className="flex size-24 items-center justify-center rounded-3xl bg-sky-600/30 ring-2 ring-sky-400 text-sky-200 animate-bounce">
             <UploadCloud className="size-12" />
           </div>
@@ -234,6 +251,17 @@ export function VerifyInput({
       {mode === "document" ? (
         <div
           onClick={() => !isVerifying && fileInputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+              handleFiles(e.dataTransfer.files);
+            }
+          }}
           className="group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-6 transition hover:border-sky-400/60 hover:bg-white/[0.08] active:scale-[0.99]"
         >
           <input
@@ -242,10 +270,13 @@ export function VerifyInput({
             multiple
             accept=".pdf,application/pdf,.png,.jpg,.jpeg,.webp,image/*"
             className="hidden"
+            onClick={(e) => {
+              e.stopPropagation();
+              (e.target as HTMLInputElement).value = "";
+            }}
             onChange={(e) => {
               if (e.target.files && e.target.files.length > 0) {
-                handleFiles(e.target.files);
-                e.target.value = "";
+                handleFiles(Array.from(e.target.files));
               }
             }}
           />

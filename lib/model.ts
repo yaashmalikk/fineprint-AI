@@ -1,4 +1,4 @@
-import { parsePDFClient, PDFClientResult } from "./pdf-client";
+import { parsePDFClient, parsePDFClientAsync, PDFClientResult } from "./pdf-client";
 
 const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
 
@@ -387,7 +387,7 @@ export async function auditContractDocument({
   fileSize?: number;
   clauseText?: string;
 }): Promise<FullAuditResult> {
-  const pdfResult = pdfBase64 ? parsePDFClient(pdfBase64) : null;
+  const pdfResult = pdfBase64 ? await parsePDFClientAsync(pdfBase64) : null;
   const text = clauseText || pdfResult?.full_text || "";
 
   if (isLiveAIConfigured) {

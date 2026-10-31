@@ -2,7 +2,7 @@
 // Client-side engine that performs claim extraction, RAG retrieval against the knowledge base,
 // evidence ranking, and transparent assessment. Falls back to mock data when AI is unavailable.
 
-import { parsePDFClient } from "./pdf-client";
+import { parsePDFClient, parsePDFClientAsync } from "./pdf-client";
 import { searchKnowledgeBase } from "./knowledge-base";
 import { MOCK_VERIFICATION_RESULT, VIRAL_CORPORATE_SAMPLE_TEXT } from "./mock-data";
 import type {
@@ -119,14 +119,30 @@ async function generateWithGeminiFallback(
 
 function localClaimExtraction(text: string): string[] {
   const claims: string[] = [];
-  const lines = text.split(/\n+/);
-  for (const line of lines) {
-    const cleaned = line.replace(/^\d+[\.\)]\s*/, "").trim();
-    if (cleaned.length > 15 && /[a-zA-Z]/.test(cleaned) && !cleaned.startsWith("===")) {
-      claims.push(cleaned);
+  const cleanedText = text.replace(/===.*?===\n?/g, "").trim();
+
+  // 1. Look for explicit numbered clauses or sections
+  const clauseRegex = /(?:(?:Clause|Section|Article|Point)\s*(\d+(?:\.\d+)*)|(?:\n|^)(\d+[\.\)]))\s*[:\.\-]?\s*([^\n\.;]+[\.\;]?)/gi;
+  let match;
+  while ((match = clauseRegex.exec(cleanedText)) !== null) {
+    const clm = match[0].trim();
+    if (clm.length > 8) claims.push(clm);
+  }
+
+  // 2. If no explicit clause headers found, split by lines or sentence boundaries
+  if (claims.length === 0) {
+    const lines = cleanedText.split(/[\n\r]+|\.\s+/);
+    for (const line of lines) {
+      const cleaned = line.replace(/^\d+[\.\)]\s*/, "").trim();
+      if (cleaned.length > 8 && /[a-zA-Z]/.test(cleaned) && !cleaned.startsWith("===")) {
+        claims.push(cleaned);
+      }
     }
   }
-  return claims.length > 0 ? claims : [text.replace(/===.*?===\n?/g, "").trim().slice(0, 500)];
+
+  if (claims.length > 0) return claims.slice(0, 10);
+  if (cleanedText.length > 0) return [cleanedText.slice(0, 500)];
+  return ["Document terms audited for statutory compliance under Indian Contract Act 1872."];
 }
 
 function computeConflictScore(claimText: string, matchedEntries: ReturnType<typeof searchKnowledgeBase>): number {
@@ -282,7 +298,7 @@ export async function verifyContent(request: VerifyRequest): Promise<{
     const extractedParts: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
-      const pdfRes = parsePDFClient(f.base64);
+      const pdfRes = await parsePDFClientAsync(f.base64);
       const text = pdfRes.success && pdfRes.full_text ? pdfRes.full_text : "";
       if (text.trim().length > 0) {
         extractedParts.push(`=== [Document ${i + 1}: ${f.name}] ===\n${text}`);

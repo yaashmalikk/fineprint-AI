@@ -610,11 +610,10 @@ export function VerifyAIBento({
   const activeResult = result || MOCK_VERIFICATION_RESULT;
 
   const isInvalid =
-    activeResult.overall_credibility_score <= 0 ||
     activeResult.is_valid_factual_content === false ||
     activeResult.content_type.toLowerCase().includes("unverifiable") ||
     activeResult.content_type.toLowerCase().includes("dummy") ||
-    activeResult.misinformation_verdict.toLowerCase().includes("rejected");
+    activeResult.misinformation_verdict.toLowerCase().includes("rejected_gibberish");
 
   const totalSources = activeResult.claims.reduce(
     (s, c) => s + (c.evidence.relevance_rank > 0 ? 1 : 0),
