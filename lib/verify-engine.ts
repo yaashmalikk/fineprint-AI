@@ -16,8 +16,11 @@ import type {
 const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
 export const isLiveAIConfigured = Boolean(apiKey && apiKey.trim().length > 10);
 
-export function isGibberishOrDummy(text: string): { isInvalid: boolean; reason?: string } {
+export function isGibberishOrDummy(text: string, isDocument = false): { isInvalid: boolean; reason?: string } {
   if (!text || !text.trim()) {
+    if (isDocument) {
+      return { isInvalid: false };
+    }
     return { isInvalid: true, reason: "Text is empty. Please enter verifiable content." };
   }
 
@@ -28,14 +31,27 @@ export function isGibberishOrDummy(text: string): { isInvalid: boolean; reason?:
     return { isInvalid: true, reason: "Dummy/Placeholder text (Lorem Ipsum) detected. No verifiable claims found." };
   }
 
-  // 2. Too short check
-  if (text.trim().split(/\s+/).filter(Boolean).length < 15) {
+  // 2. Repetitive character / keyboard mash check
+  if (/(.)\1{6,}/.test(lower)) {
+    return { isInvalid: true, reason: "Repetitive gibberish pattern detected. No verifiable claims found." };
+  }
+
+  // 3. For uploaded documents (PDFs, images): NEVER reject on length!
+  // Short PDFs, 1-page letters, certificates, and single-clause notices are 100% valid.
+  if (isDocument) {
+    return { isInvalid: false };
+  }
+
+  // 4. For raw pasted text: allow short text if it contains substantive legal/contractual terms
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const hasSubstantiveKeywords = /bond|penalty|non-compete|compete|salary|notice|certificate|marksheet|lakh|deposit|rent|contract|agreement|clause|section|fine|leave|employer|employee/i.test(text);
+
+  if (words.length < 15 && !hasSubstantiveKeywords) {
     return { isInvalid: true, reason: "Text is too short to extract verifiable legal or factual claims." };
   }
 
-  // 3. Repetitive character / keyboard mash check
-  if (/(.)\1{6,}/.test(lower)) {
-    return { isInvalid: true, reason: "Repetitive gibberish pattern detected. No verifiable claims found." };
+  if (words.length < 3) {
+    return { isInvalid: true, reason: "Text is too short to extract verifiable legal or factual claims." };
   }
 
   return { isInvalid: false };
@@ -106,11 +122,11 @@ function localClaimExtraction(text: string): string[] {
   const lines = text.split(/\n+/);
   for (const line of lines) {
     const cleaned = line.replace(/^\d+[\.\)]\s*/, "").trim();
-    if (cleaned.length > 30 && /[a-zA-Z]/.test(cleaned)) {
+    if (cleaned.length > 15 && /[a-zA-Z]/.test(cleaned) && !cleaned.startsWith("===")) {
       claims.push(cleaned);
     }
   }
-  return claims.length > 0 ? claims : [text.slice(0, 500)];
+  return claims.length > 0 ? claims : [text.replace(/===.*?===\n?/g, "").trim().slice(0, 500)];
 }
 
 function computeConflictScore(claimText: string, matchedEntries: ReturnType<typeof searchKnowledgeBase>): number {
@@ -277,8 +293,9 @@ export async function verifyContent(request: VerifyRequest): Promise<{
     contentText = extractedParts.join("\n\n");
   }
 
-  // Content validation: Check for dummy/lorem ipsum, gibberish, or short text
-  const check = isGibberishOrDummy(contentText);
+  // Content validation: Check for dummy/lorem ipsum, gibberish, or short text (never reject uploaded PDFs on length)
+  const isDocument = files.length > 0;
+  const check = isGibberishOrDummy(contentText, isDocument);
   if (check.isInvalid) {
     return {
       result: createInvalidContentResult(check.reason || "Invalid content", contentText),

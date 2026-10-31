@@ -22,8 +22,8 @@ export function parsePDFClient(base64: string): PDFClientResult {
       .replace(/\\([()\\])/g, "$1")
       .trim();
 
-    if (!full_text || full_text.length < 20) {
-      full_text = "Extracted employment contract text from PDF document.";
+    if (!full_text || full_text.trim().length === 0) {
+      full_text = "Uploaded PDF document content ready for verification.";
     }
 
     const clauses: { clause: string; heading: string }[] = [];

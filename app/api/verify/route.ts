@@ -191,8 +191,9 @@ export async function POST(request: NextRequest) {
       text = extractedParts.join("\n\n");
     }
 
-    // Check for dummy text, lorem ipsum, or too-short input
-    const check = isGibberishOrDummy(text);
+    // Check for dummy text, lorem ipsum, or too-short input (never reject uploaded PDFs on length)
+    const isDocument = fileList.length > 0;
+    const check = isGibberishOrDummy(text, isDocument);
     if (check.isInvalid) {
       return NextResponse.json({
         result: createInvalidContentResult(check.reason || "Invalid content", text),
