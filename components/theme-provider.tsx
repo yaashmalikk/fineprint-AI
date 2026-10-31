@@ -13,28 +13,24 @@ interface ThemeContextType {
 }
 
 const ThemeContext = React.createContext<ThemeContextType>({
-  theme: "dark",
-  isDarkMode: true,
+  theme: "light",
+  isDarkMode: false,
   toggleTheme: () => {},
   setTheme: () => {},
   mounted: false,
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = React.useState<Theme>("dark");
+  const [theme, setThemeState] = React.useState<Theme>("light");
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     // 1. Check localStorage first
     const saved = localStorage.getItem("claimproof-theme") as Theme | null;
-    let initialTheme: Theme = "dark";
+    let initialTheme: Theme = "light";
 
     if (saved === "light" || saved === "dark") {
       initialTheme = saved;
-    } else {
-      // 2. Default to system preference if present, otherwise dark
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      initialTheme = prefersDark ? "dark" : "dark"; // Defaulting to dark night sky
     }
 
     setThemeState(initialTheme);

@@ -14,6 +14,10 @@ import {
   Download,
   X,
   ChevronRight,
+  FileText,
+  Search,
+  BarChart3,
+  ClipboardList,
 } from "lucide-react";
 import type {
   VerificationResult,
@@ -44,11 +48,11 @@ function Tile({
 }) {
   return (
     <div
-      className={`relative flex flex-col justify-between overflow-hidden rounded-2xl border p-5 shadow-sm transition border-slate-200/90 bg-slate-50/70 hover:border-slate-300 dark:border-zinc-800/80 dark:bg-zinc-900/50 dark:hover:border-zinc-700/80 ${className}`}
+      className={`relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl shadow-lg transition hover:border-white/20 ${className}`}
     >
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3 text-xs">
-          {title && <span className="font-semibold text-slate-700 dark:text-zinc-300">{title}</span>}
+          {title && <span className="font-semibold text-white/80">{title}</span>}
           {action && <div>{action}</div>}
         </div>
       )}
@@ -87,22 +91,22 @@ function PipelineIndicator({
             <div
               className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium whitespace-nowrap border transition-all ${
                 done
-                  ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30"
+                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
                   : active
-                    ? "bg-sky-50 text-sky-800 border-sky-300 animate-pulse dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30"
-                    : "bg-slate-100 text-slate-500 border-slate-200 dark:bg-zinc-900/60 dark:text-zinc-400 dark:border-zinc-800"
+                    ? "bg-sky-500/20 text-sky-300 border-sky-500/30 animate-pulse"
+                    : "bg-white/5 text-white/40 border-white/10"
               }`}
             >
               {done ? (
-                <CheckCircle2 className="size-3 text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle2 className="size-3" />
               ) : active ? (
-                <div className="size-2 rounded-full bg-sky-600 dark:bg-sky-400 animate-pulse" />
+                <div className="size-2 rounded-full bg-sky-400 animate-pulse" />
               ) : (
-                <div className="size-2 rounded-full bg-slate-300 dark:bg-zinc-700" />
+                <div className="size-2 rounded-full bg-white/20" />
               )}
               <span>{label}</span>
             </div>
-            {i < 3 && <ChevronRight className="size-3 text-slate-300 dark:text-zinc-700 shrink-0" />}
+            {i < 3 && <ChevronRight className="size-3 text-white/20 shrink-0" />}
           </React.Fragment>
         );
       })}
@@ -134,7 +138,7 @@ function CredibilityScoreTile({
   return (
     <Tile className="sm:col-span-2 lg:col-span-2">
       <div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400 font-medium">
+        <div className="flex items-center gap-2 text-xs text-white/60">
           <span className="size-2 rounded-full" style={{ background: color }} />
           <span className="font-mono uppercase tracking-wider">
             Credibility & Verification Index
@@ -143,17 +147,15 @@ function CredibilityScoreTile({
 
         <div className="mt-3 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white sm:text-2xl">
-              {isInvalid ? "REJECTED (0%)" : `${displayScore}% Credible`}
+            <h2 className="text-lg font-bold tracking-tight text-white sm:text-2xl">
+              {getCredibilityLabel(displayScore)}
             </h2>
-            <p className="mt-1 text-xs text-slate-600 dark:text-zinc-400 max-w-md leading-relaxed">
-              {verdict}
-            </p>
+            <p className="mt-1 text-xs text-white/60 max-w-md">{verdict}</p>
           </div>
           <div className="text-right shrink-0">
             <div className="text-3xl font-extrabold font-mono" style={{ color }}>
               {displayScore}
-              <span className="text-sm font-normal text-slate-400 dark:text-zinc-500">/100</span>
+              <span className="text-sm font-normal text-white/40">/100</span>
             </div>
             <p className="text-[11px] font-semibold" style={{ color }}>
               {isInvalid ? "0 Claims Valid" : `${claimsCount} Claims Analyzed`}
@@ -164,13 +166,13 @@ function CredibilityScoreTile({
 
       {/* Score Bar */}
       <div className="mt-6">
-        <div className="flex items-center justify-between text-xs text-slate-600 dark:text-zinc-400 font-medium">
+        <div className="flex items-center justify-between text-xs text-white/60">
           <span>Overall Credibility Score</span>
-          <span className="font-mono text-slate-800 dark:text-zinc-200">
+          <span className="font-mono text-white/80">
             {displayScore === 0 ? "0% (Rejected / Dummy Text)" : displayScore >= 70 ? "Credible" : displayScore >= 40 ? "Mixed" : "Misinformation"}
           </span>
         </div>
-        <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-zinc-800">
+        <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{
@@ -208,7 +210,7 @@ function StatsSummaryTile({
           <div key={s.label} className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <s.icon className="size-4" style={{ color: s.color }} />
-              <span className="text-xs text-slate-600 dark:text-zinc-300 font-medium">{s.label}</span>
+              <span className="text-xs text-white/70">{s.label}</span>
             </div>
             <span className="font-mono text-sm font-bold" style={{ color: s.color }}>
               {s.count}
@@ -217,7 +219,7 @@ function StatsSummaryTile({
         ))}
       </div>
 
-      {/* Mini breakdown bar */}
+      {/* Mini pie */}
       <div className="mt-4 flex items-center gap-1.5">
         {stats.map((s) => {
           const pct = claims.length > 0 ? (s.count / claims.length) * 100 : 0;
@@ -258,7 +260,7 @@ function ConflictGaugeTile({
       <div className="flex flex-col items-center justify-center py-2 text-center">
         <div className="relative size-32">
           <svg className="size-full -rotate-90" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="10" className="text-slate-200 dark:text-zinc-800" />
+            <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="10" />
             <circle
               cx="50"
               cy="50"
@@ -273,15 +275,15 @@ function ConflictGaugeTile({
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-mono text-2xl font-black text-slate-900 dark:text-white">{displayCredibility}%</span>
-            <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-zinc-400 font-semibold">
+            <span className="font-mono text-2xl font-black text-white">{displayCredibility}%</span>
+            <span className="text-[10px] uppercase tracking-wider text-white/50">
               {isInvalid ? "0% Credibility" : "Credibility"}
             </span>
           </div>
         </div>
 
         <div className="mt-3">
-          <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium">
+          <p className="text-xs text-white/60">
             {isInvalid ? "Dummy / Unverifiable" : `${totalClaims} Claims Evaluated`}
           </p>
           <p className="font-mono text-sm font-bold" style={{ color }}>
@@ -312,11 +314,11 @@ function EvidenceCard({
   const statusLabel = getStatusLabel(claim.verification_status);
 
   return (
-    <div className="rounded-xl border p-4 shadow-sm transition border-slate-200 bg-white hover:border-slate-300 dark:border-zinc-800/90 dark:bg-zinc-900/60 dark:hover:border-zinc-700">
+    <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 transition hover:bg-white/[0.05]">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] font-bold text-slate-400 dark:text-zinc-500">{claim.claim_id}</span>
+          <span className="font-mono text-[10px] text-white/40">{claim.claim_id}</span>
           <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${statusClasses}`}>
             {statusLabel}
           </span>
@@ -332,50 +334,50 @@ function EvidenceCard({
       {/* Split View: Claim vs Evidence */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {/* Left: The Claim */}
-        <div className="rounded-lg border p-3 border-rose-200 bg-rose-50/70 dark:border-rose-500/25 dark:bg-rose-500/10">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-1.5 text-rose-700 dark:text-rose-400">
+        <div className="rounded-lg border border-rose-500/20 bg-rose-950/20 p-3">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-rose-400 uppercase tracking-wider mb-1.5">
             <ShieldAlert className="size-3" />
             The Claim
           </div>
-          <p className="text-xs font-medium leading-relaxed text-slate-900 dark:text-zinc-100">"{claim.claim_text}"</p>
+          <p className="text-xs text-white/90 leading-relaxed">"{claim.claim_text}"</p>
         </div>
 
         {/* Right: The Evidence */}
-        <div className="rounded-lg border p-3 border-emerald-200 bg-emerald-50/70 dark:border-emerald-500/25 dark:bg-emerald-500/10">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-1.5 text-emerald-700 dark:text-emerald-400">
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/20 p-3">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-emerald-400 uppercase tracking-wider mb-1.5">
             <ShieldCheck className="size-3" />
             Verified Evidence
           </div>
-          <p className="text-[11px] font-bold font-mono mb-1 text-emerald-800 dark:text-emerald-300">
+          <p className="text-[11px] font-medium text-emerald-300 mb-1">
             {claim.evidence.statutory_reference}
           </p>
-          <p className="text-xs leading-relaxed line-clamp-3 text-slate-700 dark:text-zinc-300">
+          <p className="text-xs text-white/70 leading-relaxed line-clamp-3">
             "{claim.evidence.official_text_excerpt}"
           </p>
         </div>
       </div>
 
       {/* Evidence Comparison */}
-      <div className="mt-3 rounded-lg border p-3 border-slate-200/80 bg-slate-50 text-slate-700 dark:border-zinc-800 dark:bg-zinc-950/60 dark:text-zinc-300">
-        <p className="text-[10px] font-bold uppercase tracking-wider mb-1 text-slate-500 dark:text-zinc-400">
+      <div className="mt-3 rounded-lg bg-black/30 border border-white/10 p-3">
+        <p className="text-[10px] font-semibold text-white/50 uppercase tracking-wider mb-1">
           Evidence Comparison
         </p>
-        <p className="text-xs leading-relaxed">{claim.evidence_comparison}</p>
+        <p className="text-xs text-white/80 leading-relaxed">{claim.evidence_comparison}</p>
       </div>
 
       {/* Footer */}
-      <div className="mt-3 flex items-center justify-between pt-1">
-        <div className="text-[11px] truncate max-w-sm text-slate-500 dark:text-zinc-400">
-          <span className="font-semibold text-slate-700 dark:text-zinc-300">{claim.evidence.authority}</span>
+      <div className="mt-3 flex items-center justify-between">
+        <div className="text-[11px] text-white/50">
+          <span className="font-medium text-white/70">{claim.evidence.authority}</span>
           {" · "}
           <span>{claim.evidence.source_title}</span>
         </div>
         <button
           type="button"
           onClick={() => onViewSource(claim)}
-          className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11px] font-semibold transition shadow-sm shrink-0 border-slate-300 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-750 dark:hover:text-white"
+          className="flex items-center gap-1 rounded-lg border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-white/80 hover:bg-white/10 transition"
         >
-          <ExternalLink className="size-3 text-sky-600 dark:text-sky-400" />
+          <ExternalLink className="size-3" />
           View Primary Source
         </button>
       </div>
@@ -393,73 +395,70 @@ function SourceModal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl rounded-2xl border p-6 shadow-2xl max-h-[90vh] overflow-y-auto border-slate-200 bg-white text-slate-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-white">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-zinc-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+      <div className="w-full max-w-2xl rounded-2xl border border-white/20 bg-slate-900 p-6 text-white shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <Shield className="size-5 text-sky-600 dark:text-sky-400" />
-            <h3 className="font-bold text-base text-slate-900 dark:text-white">Primary Statutory Evidence Source</h3>
+            <Shield className="size-5 text-sky-400" />
+            <h3 className="font-bold">Primary Source Citation</h3>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800 transition"
-          >
+          <button onClick={onClose} className="text-white/60 hover:text-white">
             <X className="size-5" />
           </button>
         </div>
 
         <div className="mt-4 space-y-4">
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+            <label className="text-[10px] text-white/50 uppercase tracking-wider">
               Source Title
             </label>
-            <p className="mt-1 text-sm font-bold text-slate-900 dark:text-white">
+            <p className="mt-1 text-sm font-semibold text-white">
               {claim.evidence.source_title}
             </p>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+            <label className="text-[10px] text-white/50 uppercase tracking-wider">
               Governing Authority
             </label>
-            <p className="mt-1 text-sm font-medium text-slate-700 dark:text-zinc-300">{claim.evidence.authority}</p>
+            <p className="mt-1 text-sm text-white/90">{claim.evidence.authority}</p>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+            <label className="text-[10px] text-white/50 uppercase tracking-wider">
               Statutory Reference
             </label>
-            <p className="mt-1 text-sm font-mono font-bold text-sky-700 dark:text-sky-400">
+            <p className="mt-1 text-sm font-mono text-sky-300">
               {claim.evidence.statutory_reference}
             </p>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+            <label className="text-[10px] text-white/50 uppercase tracking-wider">
               Official Text Excerpt
             </label>
-            <div className="mt-1 rounded-xl border p-4 border-emerald-200 bg-emerald-50/70 text-slate-800 dark:border-emerald-500/25 dark:bg-emerald-950/30 dark:text-emerald-200">
-              <p className="text-sm leading-relaxed font-serif italic">
+            <div className="mt-1 rounded-lg border border-emerald-500/20 bg-emerald-950/20 p-4">
+              <p className="text-sm text-emerald-200 leading-relaxed font-mono">
                 "{claim.evidence.official_text_excerpt}"
               </p>
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+            <label className="text-[10px] text-white/50 uppercase tracking-wider">
               Transparent Explanation
             </label>
-            <p className="mt-1 text-sm leading-relaxed text-slate-700 dark:text-zinc-300">
+            <p className="mt-1 text-sm text-white/80 leading-relaxed">
               {claim.transparent_explanation}
             </p>
           </div>
 
           <div>
-            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+            <label className="text-[10px] text-white/50 uppercase tracking-wider">
               Claim Under Review
             </label>
-            <div className="mt-1 rounded-xl border p-4 border-rose-200 bg-rose-50/70 text-rose-950 dark:border-rose-500/25 dark:bg-rose-950/30 dark:text-rose-200">
-              <p className="text-sm leading-relaxed font-semibold">
+            <div className="mt-1 rounded-lg border border-rose-500/20 bg-rose-950/20 p-4">
+              <p className="text-sm text-rose-200 leading-relaxed italic">
                 "{claim.claim_text}"
               </p>
             </div>
@@ -469,7 +468,7 @@ function SourceModal({
         <div className="mt-6 flex justify-end">
           <button
             onClick={onClose}
-            className="rounded-xl px-5 py-2 text-xs font-bold shadow-sm transition active:scale-95 bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-zinc-200"
+            className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold hover:bg-white/20 transition"
           >
             Close
           </button>
@@ -563,14 +562,14 @@ function ActionDock({
     <Tile className="sm:col-span-2 lg:col-span-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Audit Actions</h3>
-          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">{result.transparent_summary.slice(0, 120)}...</p>
+          <h3 className="text-sm font-bold text-white">Actions</h3>
+          <p className="text-xs text-white/60 mt-0.5">{result.transparent_summary.slice(0, 120)}...</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleExport}
-            className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold shadow-sm transition active:scale-95 bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-zinc-200"
+            className="flex items-center gap-1.5 rounded-xl bg-white px-4 py-2 text-xs font-bold text-sky-950 transition hover:bg-white/90 active:scale-95"
           >
             <Download className="size-3.5" />
             Export Verified Audit Dossier
@@ -578,9 +577,9 @@ function ActionDock({
           <button
             type="button"
             onClick={handleRebuttal}
-            className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-xs font-semibold shadow-sm transition active:scale-95 border-slate-300 bg-white text-slate-800 hover:bg-slate-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700"
+            className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/20 active:scale-95"
           >
-            {copied ? <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="size-3.5" />}
+            {copied ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
             {copied ? "Copied!" : "Generate Rebuttal / Counter-Notice"}
           </button>
         </div>
@@ -627,17 +626,17 @@ export function VerifyAIBento({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2">
           {engineNotice && (
-            <span className="rounded-full px-3 py-1 font-mono text-[11px] border border-slate-200 bg-slate-100 text-slate-700 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300">
+            <span className="rounded-full bg-white/10 px-3 py-1 font-mono text-[11px] text-white/80 border border-white/15">
               {engineNotice}
             </span>
           )}
           {isLiveAI && (
-            <span className="rounded-full px-2.5 py-1 font-mono text-[11px] font-semibold border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400">
+            <span className="rounded-full bg-emerald-500/20 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300 border border-emerald-500/30">
               Live Gemini AI
             </span>
           )}
         </div>
-        <span className="rounded-full px-3 py-1.5 font-semibold text-xs shadow-sm bg-slate-900 text-white dark:bg-zinc-800 dark:text-zinc-100">
+        <span className="rounded-full bg-white px-3 py-1.5 font-semibold text-slate-950 text-xs">
           {activeResult.content_type}
         </span>
       </div>
@@ -673,12 +672,12 @@ export function VerifyAIBento({
           <Tile title="Evidence Comparison Grid">
             <div className="space-y-3">
               {activeResult.claims.length === 0 ? (
-                <div className="rounded-xl border p-6 text-center border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-                  <AlertTriangle className="size-8 mx-auto text-rose-500 mb-2" />
-                  <p className="text-sm font-bold text-rose-900 dark:text-rose-300">
+                <div className="rounded-xl border border-rose-500/20 bg-rose-950/20 p-6 text-center">
+                  <AlertTriangle className="size-8 mx-auto text-rose-400 mb-2" />
+                  <p className="text-sm font-semibold text-rose-200">
                     {activeResult.verdict_summary || "No factual claims or verifiable real-world legal clauses were found in this text."}
                   </p>
-                  <p className="text-xs text-rose-700 dark:text-rose-400/80 mt-1">
+                  <p className="text-xs text-rose-300/70 mt-1">
                     Rejected by ClaimProof AI Zero-Tolerance Claim Extraction Protocol.
                   </p>
                 </div>
@@ -707,3 +706,4 @@ export function VerifyAIBento({
 }
 
 export default VerifyAIBento;
+

@@ -28,8 +28,8 @@ export function ThemeToggle({ className = "" }: ThemeToggleProps) {
       title={isDarkMode ? "Switch to Day Sky (Light Mode)" : "Switch to Night Sky (Dark Mode)"}
       className={`relative inline-flex size-9 items-center justify-center rounded-full border transition-all duration-300 active:scale-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 ${
         isDarkMode
-          ? "border-sky-500/40 bg-slate-900/80 text-sky-300 shadow-[0_0_15px_-3px_rgba(56,189,248,0.4)] hover:border-sky-400 hover:bg-slate-800"
-          : "border-slate-300/80 bg-white/90 text-amber-600 shadow-sm hover:border-amber-400 hover:bg-amber-50/60"
+          ? "border-sky-500/40 bg-zinc-900/80 text-sky-300 shadow-[0_0_15px_-3px_rgba(56,189,248,0.4)] hover:border-sky-400 hover:bg-zinc-800"
+          : "border-white/30 bg-white/15 text-amber-300 shadow-sm hover:border-white/50 hover:bg-white/25 backdrop-blur-md"
       } ${className}`}
     >
       {/* Sun Icon */}

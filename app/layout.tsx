@@ -21,17 +21,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
                 const t = localStorage.getItem("claimproof-theme");
-                if (t === "light") {
-                  document.documentElement.classList.remove("dark");
-                } else {
+                if (t === "dark") {
                   document.documentElement.classList.add("dark");
+                } else {
+                  document.documentElement.classList.remove("dark");
                 }
               } catch (_) {}
             `,

@@ -208,14 +208,14 @@ export function VerifyInput({
       )}
 
       {/* Mode Tabs */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex items-center gap-2">
         <button
           type="button"
           onClick={() => setMode("document")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition ${
             mode === "document"
-              ? "bg-sky-600 text-white shadow-sm"
-              : "border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+              ? "bg-white text-sky-900 shadow-md"
+              : "border border-white/20 bg-white/5 text-white/70 hover:bg-white/10"
           }`}
         >
           <FileText className="size-4" />
@@ -226,8 +226,8 @@ export function VerifyInput({
           onClick={() => setMode("online")}
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold transition ${
             mode === "online"
-              ? "bg-sky-600 text-white shadow-sm"
-              : "border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+              ? "bg-white text-sky-900 shadow-md"
+              : "border border-white/20 bg-white/5 text-white/70 hover:bg-white/10"
           }`}
         >
           <Globe className="size-4" />
@@ -239,9 +239,9 @@ export function VerifyInput({
             type="button"
             onClick={handleLoadSample}
             disabled={isVerifying}
-            className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-[11px] font-bold transition disabled:opacity-50 active:scale-95 shadow-sm bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20"
+            className="flex items-center gap-1.5 rounded-xl bg-amber-500/20 border border-amber-500/30 px-3 py-2 text-[11px] font-bold text-amber-300 transition hover:bg-amber-500/30 disabled:opacity-50 active:scale-95"
           >
-            <Zap className="size-3.5 text-amber-600 dark:text-amber-400" />
+            <Zap className="size-3.5" />
             Load Viral Corporate Misinformation Sample
           </button>
         </div>
@@ -262,7 +262,7 @@ export function VerifyInput({
               handleFiles(e.dataTransfer.files);
             }
           }}
-          className="group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed p-6 transition active:scale-[0.99] border-slate-300 bg-slate-50/70 hover:border-sky-500 hover:bg-sky-50/40 dark:border-zinc-800 dark:bg-zinc-900/40 dark:hover:border-sky-500/50 dark:hover:bg-zinc-900/60"
+          className="group relative cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-white/20 bg-white/5 p-6 transition hover:border-sky-400/60 hover:bg-white/[0.08] active:scale-[0.99]"
         >
           <input
             ref={fileInputRef}
@@ -282,9 +282,9 @@ export function VerifyInput({
           />
 
           <div className="flex flex-col items-center text-center">
-            <div className="flex size-14 items-center justify-center rounded-2xl transition group-hover:scale-110 shadow-sm bg-sky-100 text-sky-600 ring-1 ring-sky-300 dark:bg-sky-500/15 dark:text-sky-400 dark:ring-sky-500/30">
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30 transition group-hover:scale-110">
               {isVerifying ? (
-                <RefreshCw className="size-7 animate-spin text-sky-600 dark:text-sky-400" />
+                <RefreshCw className="size-7 animate-spin text-sky-300" />
               ) : selectedFiles.length > 1 ? (
                 <Files className="size-7" />
               ) : (
@@ -293,14 +293,14 @@ export function VerifyInput({
             </div>
 
             <div className="mt-4">
-              <p className="text-base font-semibold text-slate-900 dark:text-white">
+              <p className="text-base font-semibold text-white">
                 {isVerifying
                   ? `Extracting & verifying claims across ${selectedFiles.length} file(s)...`
                   : selectedFiles.length > 0
                     ? `${selectedFiles.length} Document(s) Selected — Click to Add More`
                     : "Drop PDF(s) or images here, or browse (Multiple Files Supported)"}
               </p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">
+              <p className="mt-1 text-xs text-white/60">
                 Upload one or multiple offer letters, annexures, bond deeds, or scanned notices (up to 25MB each)
               </p>
             </div>
@@ -311,11 +311,11 @@ export function VerifyInput({
                   {selectedFiles.map((file, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs shadow-sm transition border-slate-200 bg-white text-slate-800 hover:border-sky-400 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-zinc-200 dark:hover:border-zinc-700"
+                      className="flex items-center gap-2 rounded-xl border border-sky-500/30 bg-sky-950/40 px-3 py-1.5 text-xs text-white/90 shadow-sm transition hover:border-sky-400"
                     >
-                      <FileText className="size-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                      <FileText className="size-3.5 text-sky-400 shrink-0" />
                       <span className="font-medium truncate max-w-[180px]">{file.name}</span>
-                      <span className="text-slate-400 dark:text-zinc-500 text-[11px] shrink-0">
+                      <span className="text-white/50 text-[11px] shrink-0">
                         ({(file.size / 1024).toFixed(1)} KB)
                       </span>
                       <button
@@ -324,7 +324,7 @@ export function VerifyInput({
                           e.stopPropagation();
                           removeFile(idx);
                         }}
-                        className="hover:text-rose-600 dark:hover:text-rose-400 transition ml-1 text-slate-400 dark:text-zinc-500"
+                        className="hover:text-rose-400 transition ml-1"
                         title="Remove file"
                       >
                         <X className="size-3.5" />
@@ -340,7 +340,7 @@ export function VerifyInput({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="flex items-center gap-1 rounded-full border px-3 py-1 transition font-semibold border-sky-300 bg-sky-50 text-sky-700 hover:bg-sky-100 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300 dark:hover:bg-sky-500/20"
+                    className="flex items-center gap-1 rounded-full border border-sky-400/40 bg-sky-500/10 px-3 py-1 text-sky-300 hover:bg-sky-500/20 transition"
                   >
                     <Plus className="size-3" />
                     Add More Files
@@ -351,7 +351,7 @@ export function VerifyInput({
                       e.stopPropagation();
                       clearAllFiles();
                     }}
-                    className="flex items-center gap-1 rounded-full border px-3 py-1 transition font-semibold border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/20"
+                    className="flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-950/20 px-3 py-1 text-rose-300 hover:bg-rose-900/30 transition"
                   >
                     <Trash2 className="size-3" />
                     Clear All ({selectedFiles.length})
@@ -368,10 +368,10 @@ export function VerifyInput({
             onChange={(e) => setContentText(e.target.value)}
             placeholder="Paste any viral claim, social media post, LinkedIn announcement, news article, or URL here..."
             rows={7}
-            className="w-full rounded-2xl border p-4 text-sm font-mono resize-none transition leading-relaxed shadow-inner border-slate-300 bg-slate-50/50 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-sky-500 dark:focus:bg-zinc-900"
+            className="w-full rounded-2xl border border-white/20 bg-white/5 p-4 text-sm font-mono text-white placeholder-white/30 backdrop-blur-xl resize-none focus:border-sky-500/50 focus:outline-none focus:ring-1 focus:ring-sky-500/30 transition leading-relaxed"
           />
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-zinc-400">
+            <div className="flex items-center gap-1.5 text-xs text-white/50">
               <Link2 className="size-3.5" />
               <span>Or load preset claim:</span>
             </div>
@@ -379,35 +379,35 @@ export function VerifyInput({
               <button
                 type="button"
                 onClick={() => setContentText(VIRAL_CORPORATE_SAMPLE_TEXT)}
-                className="rounded-full border px-2.5 py-1 text-[11px] transition font-medium border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+                className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] text-white/80 hover:bg-white/10 transition"
               >
                 Full Viral Offer
               </button>
               <button
                 type="button"
                 onClick={() => setContentText("Candidate must pay non-negotiable exit penalty of Rs 2,50,000 if resigning before 24 months. Amount cannot be challenged in court.")}
-                className="rounded-full border px-2.5 py-1 text-[11px] transition font-medium border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+                className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] text-white/80 hover:bg-white/10 transition"
               >
                 ₹2.5L Bond Clause
               </button>
               <button
                 type="button"
                 onClick={() => setContentText("Employee original degree marksheets and graduation certificate will remain in company physical custody during probation.")}
-                className="rounded-full border px-2.5 py-1 text-[11px] transition font-medium border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+                className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] text-white/80 hover:bg-white/10 transition"
               >
                 Certificate Custody
               </button>
               <button
                 type="button"
                 onClick={() => setContentText("Employee is strictly prohibited from working in tech or joining any competitor anywhere across India for 2 years post exit.")}
-                className="rounded-full border px-2.5 py-1 text-[11px] transition font-medium border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white"
+                className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] text-white/80 hover:bg-white/10 transition"
               >
                 Void Non-Compete
               </button>
               <button
                 type="button"
                 onClick={() => setContentText("")}
-                className="rounded-full border px-2 py-1 text-[11px] transition font-medium border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20"
+                className="rounded-full border border-rose-500/20 bg-rose-950/20 px-2 py-1 text-[11px] text-rose-300 hover:bg-rose-900/30 transition"
               >
                 Clear
               </button>
@@ -418,16 +418,16 @@ export function VerifyInput({
 
       {/* Stepper */}
       {isVerifying && (
-        <div className="mt-4 rounded-xl border p-3 shadow-sm border-sky-200 bg-sky-50/80 dark:border-zinc-800 dark:bg-zinc-900/80">
-          <div className="flex items-center justify-between text-xs font-semibold text-sky-800 dark:text-sky-300">
+        <div className="mt-4 rounded-xl border border-sky-500/30 bg-sky-950/60 p-3">
+          <div className="flex items-center justify-between text-xs text-sky-200">
             <span className="font-mono">
               Stage {scanStep + 1} of {PIPELINE_STAGES.length}
             </span>
             <span className="animate-pulse">{PIPELINE_STAGES[scanStep].detail}</span>
           </div>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-sky-200 dark:bg-zinc-800">
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all duration-500"
+              className="h-full bg-gradient-to-r from-sky-400 to-emerald-400 transition-all duration-500"
               style={{ width: `${((scanStep + 1) / PIPELINE_STAGES.length) * 100}%` }}
             />
           </div>
@@ -436,8 +436,8 @@ export function VerifyInput({
 
       {/* Error */}
       {error && (
-        <div className="mt-3 flex items-center gap-2 text-xs font-semibold p-2.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-700 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-400">
-          <AlertTriangle className="size-4 shrink-0" />
+        <div className="mt-3 flex items-center gap-2 text-xs font-medium text-rose-400">
+          <AlertTriangle className="size-4" />
           <span>{error}</span>
         </div>
       )}
@@ -447,7 +447,7 @@ export function VerifyInput({
         type="button"
         disabled={isVerifying || (mode === "online" ? contentText.trim().length === 0 : selectedFiles.length === 0)}
         onClick={runVerification}
-        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-600 to-emerald-600 px-6 py-3.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
         {isVerifying ? (
           <RefreshCw className="size-4 animate-spin text-white" />
