@@ -5,11 +5,14 @@ import {
   UploadCloud,
   Globe,
   FileText,
+  Files,
   AlertTriangle,
   RefreshCw,
   X,
   Zap,
   Link2,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { verifyContent, loadViralSample } from "@/lib/verify-engine";
 import type { VerificationResult, InputMode, PipelineStage } from "@/lib/verify-types";
@@ -29,11 +32,9 @@ export function VerifyInput({
 }: VerifyInputProps) {
   const [mode, setMode] = React.useState<InputMode>("online");
   const [isDragging, setIsDragging] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState<{
-    name: string;
-    size: number;
-    base64: string;
-  } | null>(null);
+  const [selectedFiles, setSelectedFiles] = React.useState<
+    { name: string; size: number; base64: string }[]
+  >([]);
   const [contentText, setContentText] = React.useState(VIRAL_CORPORATE_SAMPLE_TEXT);
   const [isVerifying, setIsVerifying] = React.useState(false);
   const [scanStep, setScanStep] = React.useState(0);
@@ -53,9 +54,9 @@ export function VerifyInput({
     const onDrop = (e: DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
-      if (e.dataTransfer?.files?.[0]) {
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         setMode("document");
-        handleFile(e.dataTransfer.files[0]);
+        handleFiles(e.dataTransfer.files);
       }
     };
 
@@ -69,25 +70,52 @@ export function VerifyInput({
     };
   }, []);
 
-  const handleFile = (file: File) => {
+  const handleFiles = (files: FileList | File[]) => {
     setError(null);
     const validTypes = [".pdf", ".png", ".jpg", ".jpeg", ".webp"];
-    const ext = file.name.toLowerCase().split(".").pop() || "";
-    if (!validTypes.some((v) => file.name.toLowerCase().endsWith(v))) {
-      setError("Please choose a valid file (PDF, PNG, JPG)");
-      return;
-    }
-    if (file.size > 25 * 1024 * 1024) {
-      setError("File exceeds maximum 25MB limit");
+    const fileArray = Array.from(files);
+    if (fileArray.length === 0) return;
+
+    const invalid = fileArray.filter(
+      (f) => !validTypes.some((ext) => f.name.toLowerCase().endsWith(ext))
+    );
+    if (invalid.length > 0) {
+      setError(`Unsupported file format for: ${invalid.map((f) => f.name).join(", ")}. Please upload PDF or image files.`);
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const b64 = (reader.result as string).split(",")[1] || "";
-      setSelectedFile({ name: file.name, size: file.size, base64: b64 });
-    };
-    reader.readAsDataURL(file);
+    const oversize = fileArray.filter((f) => f.size > 25 * 1024 * 1024);
+    if (oversize.length > 0) {
+      setError(`File exceeds maximum 25MB limit: ${oversize.map((f) => f.name).join(", ")}`);
+      return;
+    }
+
+    const readers = fileArray.map((file) => {
+      return new Promise<{ name: string; size: number; base64: string }>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const b64 = (reader.result as string).split(",")[1] || "";
+          resolve({ name: file.name, size: file.size, base64: b64 });
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then((newItems) => {
+      setSelectedFiles((prev) => {
+        const existing = new Set(prev.map((p) => p.name));
+        const filtered = newItems.filter((item) => !existing.has(item.name));
+        return [...prev, ...filtered];
+      });
+    });
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const clearAllFiles = () => {
+    setSelectedFiles([]);
   };
 
   const runVerification = async () => {
@@ -108,8 +136,9 @@ export function VerifyInput({
     try {
       const { result, isLiveAI, engineMessage } = await verifyContent({
         mode,
-        pdfBase64: selectedFile?.base64,
-        fileName: selectedFile?.name,
+        files: selectedFiles,
+        pdfBase64: selectedFiles[0]?.base64,
+        fileName: selectedFiles[0]?.name,
         contentText: mode === "online" ? contentText : undefined,
       });
       onPipelineStageChange("complete");
@@ -210,15 +239,23 @@ export function VerifyInput({
           <input
             ref={fileInputRef}
             type="file"
+            multiple
             accept=".pdf,application/pdf,.png,.jpg,.jpeg,.webp,image/*"
             className="hidden"
-            onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                handleFiles(e.target.files);
+                e.target.value = "";
+              }
+            }}
           />
 
           <div className="flex flex-col items-center text-center">
             <div className="flex size-14 items-center justify-center rounded-2xl bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/30 transition group-hover:scale-110">
               {isVerifying ? (
                 <RefreshCw className="size-7 animate-spin text-sky-300" />
+              ) : selectedFiles.length > 1 ? (
+                <Files className="size-7" />
               ) : (
                 <UploadCloud className="size-7" />
               )}
@@ -226,30 +263,69 @@ export function VerifyInput({
 
             <div className="mt-4">
               <p className="text-base font-semibold text-white">
-                {isVerifying ? "Extracting & verifying claims..." : "Drop a PDF or image, or browse"}
+                {isVerifying
+                  ? `Extracting & verifying claims across ${selectedFiles.length} file(s)...`
+                  : selectedFiles.length > 0
+                    ? `${selectedFiles.length} Document(s) Selected — Click to Add More`
+                    : "Drop PDF(s) or images here, or browse (Multiple Files Supported)"}
               </p>
               <p className="mt-1 text-xs text-white/60">
-                Works with contracts, offer letters, scanned documents up to 25MB
+                Upload one or multiple offer letters, annexures, bond deeds, or scanned notices (up to 25MB each)
               </p>
             </div>
 
-            {selectedFile && !isVerifying && (
-              <div className="mt-3 flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs text-white/90">
-                <FileText className="size-3.5 text-sky-400" />
-                <span className="font-medium">{selectedFile.name}</span>
-                <span className="text-white/50">
-                  ({(selectedFile.size / 1024).toFixed(1)} KB)
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedFile(null);
-                  }}
-                  className="hover:text-white"
-                >
-                  <X className="size-3.5" />
-                </button>
+            {selectedFiles.length > 0 && !isVerifying && (
+              <div className="mt-4 w-full">
+                <div className="flex flex-wrap items-center justify-center gap-2 max-h-48 overflow-y-auto p-1">
+                  {selectedFiles.map((file, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 rounded-xl border border-sky-500/30 bg-sky-950/40 px-3 py-1.5 text-xs text-white/90 shadow-sm transition hover:border-sky-400"
+                    >
+                      <FileText className="size-3.5 text-sky-400 shrink-0" />
+                      <span className="font-medium truncate max-w-[180px]">{file.name}</span>
+                      <span className="text-white/50 text-[11px] shrink-0">
+                        ({(file.size / 1024).toFixed(1)} KB)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(idx);
+                        }}
+                        className="hover:text-rose-400 transition ml-1"
+                        title="Remove file"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex items-center justify-center gap-2 text-xs">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    className="flex items-center gap-1 rounded-full border border-sky-400/40 bg-sky-500/10 px-3 py-1 text-sky-300 hover:bg-sky-500/20 transition"
+                  >
+                    <Plus className="size-3" />
+                    Add More Files
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearAllFiles();
+                    }}
+                    className="flex items-center gap-1 rounded-full border border-rose-500/30 bg-rose-950/20 px-3 py-1 text-rose-300 hover:bg-rose-900/30 transition"
+                  >
+                    <Trash2 className="size-3" />
+                    Clear All ({selectedFiles.length})
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -338,7 +414,7 @@ export function VerifyInput({
       {/* Verify Button */}
       <button
         type="button"
-        disabled={isVerifying || (mode === "online" ? contentText.trim().length === 0 : !selectedFile)}
+        disabled={isVerifying || (mode === "online" ? contentText.trim().length === 0 : selectedFiles.length === 0)}
         onClick={runVerification}
         className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-sky-500 to-emerald-500 px-6 py-3 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
@@ -347,7 +423,11 @@ export function VerifyInput({
         ) : (
           <Zap className="size-4" />
         )}
-        {isVerifying ? "Verifying with RAG Pipeline..." : "Verify & Extract Claims"}
+        {isVerifying
+          ? "Verifying with RAG Pipeline..."
+          : mode === "document" && selectedFiles.length > 1
+            ? `Verify & Cross-Audit ${selectedFiles.length} Documents`
+            : "Verify & Extract Claims"}
       </button>
     </div>
   );

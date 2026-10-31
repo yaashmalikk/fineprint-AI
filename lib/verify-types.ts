@@ -35,11 +35,18 @@ export interface VerificationResult {
 
 export type InputMode = "document" | "online";
 
+export interface FileUploadItem {
+  name: string;
+  size?: number;
+  base64: string;
+}
+
 export interface VerifyRequest {
   mode: InputMode;
-  // Mode A: Document
+  // Mode A: Document(s)
   pdfBase64?: string;
   fileName?: string;
+  files?: FileUploadItem[];
   // Mode B: Online content
   contentText?: string;
   sourceUrl?: string;

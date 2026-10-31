@@ -160,21 +160,35 @@ function localVerify(contentText: string): VerificationResult {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { mode, pdfBase64, fileName, contentText, sourceUrl } = body as {
+    const { mode, pdfBase64, fileName, files, contentText, sourceUrl } = body as {
       mode?: string;
       pdfBase64?: string;
       fileName?: string;
+      files?: { name: string; base64: string; size?: number }[];
       contentText?: string;
       sourceUrl?: string;
     };
 
     let text = contentText || "";
 
-    if (pdfBase64) {
-      const pdfResult = parsePDFClient(pdfBase64);
-      if (pdfResult.success && pdfResult.full_text) {
-        text = pdfResult.full_text;
+    const fileList = files && files.length > 0
+      ? files
+      : pdfBase64
+        ? [{ name: fileName || "document.pdf", base64: pdfBase64 }]
+        : [];
+
+    if (fileList.length > 0) {
+      const extractedParts: string[] = [];
+      for (let i = 0; i < fileList.length; i++) {
+        const f = fileList[i];
+        const pdfResult = parsePDFClient(f.base64);
+        if (pdfResult.success && pdfResult.full_text) {
+          extractedParts.push(`=== [Document ${i + 1}: ${f.name}] ===\n${pdfResult.full_text}`);
+        } else {
+          extractedParts.push(`=== [Document ${i + 1}: ${f.name}] ===\n(Document content from ${f.name})`);
+        }
       }
+      text = extractedParts.join("\n\n");
     }
 
     // Check for dummy text, lorem ipsum, or too-short input
@@ -189,10 +203,12 @@ export async function POST(request: NextRequest) {
 
     // Try Gemini
     const parts: unknown[] = [];
-    if (pdfBase64) {
-      parts.push({ inlineData: { mimeType: "application/pdf", data: pdfBase64 } });
+    for (const f of fileList) {
+      if (f.base64 && f.name.toLowerCase().endsWith(".pdf")) {
+        parts.push({ inlineData: { mimeType: "application/pdf", data: f.base64 } });
+      }
     }
-    parts.push({ text: `Content to verify:\n${text.slice(0, 12000)}` });
+    parts.push({ text: `Content to verify across ${fileList.length > 0 ? `${fileList.length} document(s)` : "submitted text"}:\n${text.slice(0, 15000)}` });
     parts.push({ text: VERIFY_PROMPT });
 
     const aiResult = await callGemini(parts);
@@ -200,10 +216,13 @@ export async function POST(request: NextRequest) {
       try {
         const jsonMatch = aiResult.text.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, aiResult.text];
         const parsed = JSON.parse((jsonMatch[1] || aiResult.text).trim()) as VerificationResult;
+        if (fileList.length > 1) {
+          parsed.content_type = `Batch Audit (${fileList.length} Files: ${fileList.map((f) => f.name).join(", ")})`;
+        }
         return NextResponse.json({
           result: parsed,
           isLiveAI: true,
-          engineMessage: `Verified live with Google Gemini (${aiResult.modelName})`,
+          engineMessage: `Verified ${fileList.length > 1 ? `${fileList.length} files ` : ""}live with Google Gemini (${aiResult.modelName})`,
         });
       } catch {
         // Parse failed, fall through to local
@@ -211,10 +230,13 @@ export async function POST(request: NextRequest) {
     }
 
     const result = localVerify(text);
+    if (fileList.length > 1) {
+      result.content_type = `Batch Audit (${fileList.length} Files: ${fileList.map((f) => f.name).join(", ")})`;
+    }
     return NextResponse.json({
       result,
       isLiveAI: false,
-      engineMessage: "Verified with local knowledge base engine",
+      engineMessage: `Verified ${fileList.length > 1 ? `${fileList.length} files ` : ""}with local knowledge base engine`,
     });
   } catch (err) {
     return NextResponse.json(

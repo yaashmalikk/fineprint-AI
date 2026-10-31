@@ -254,12 +254,27 @@ export async function verifyContent(request: VerifyRequest): Promise<{
 }> {
   let contentText = request.contentText || "";
 
-  // Extract text from PDF if provided
-  if (request.pdfBase64) {
-    const pdfResult = parsePDFClient(request.pdfBase64);
-    if (pdfResult.success && pdfResult.full_text) {
-      contentText = pdfResult.full_text;
+  // Normalize single or multiple uploaded files
+  const files = request.files && request.files.length > 0
+    ? request.files
+    : request.pdfBase64
+      ? [{ name: request.fileName || "document.pdf", base64: request.pdfBase64 }]
+      : [];
+
+  // Extract text across all uploaded documents
+  if (files.length > 0) {
+    const extractedParts: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const pdfRes = parsePDFClient(f.base64);
+      const text = pdfRes.success && pdfRes.full_text ? pdfRes.full_text : "";
+      if (text.trim().length > 0) {
+        extractedParts.push(`=== [Document ${i + 1}: ${f.name}] ===\n${text}`);
+      } else {
+        extractedParts.push(`=== [Document ${i + 1}: ${f.name}] ===\n(Document content from ${f.name})`);
+      }
     }
+    contentText = extractedParts.join("\n\n");
   }
 
   // Content validation: Check for dummy/lorem ipsum, gibberish, or short text
@@ -276,22 +291,28 @@ export async function verifyContent(request: VerifyRequest): Promise<{
   if (isLiveAIConfigured) {
     try {
       const parts: unknown[] = [];
-      if (request.pdfBase64) {
-        parts.push({
-          inlineData: { mimeType: "application/pdf", data: request.pdfBase64 },
-        });
+      for (const f of files) {
+        if (f.base64 && f.name.toLowerCase().endsWith(".pdf")) {
+          parts.push({
+            inlineData: { mimeType: "application/pdf", data: f.base64 },
+          });
+        }
       }
-      parts.push({ text: `Content to verify:\n${contentText.slice(0, 12000)}` });
+      parts.push({ text: `Content to verify across ${files.length > 0 ? `${files.length} document(s)` : "submitted text"}:\n${contentText.slice(0, 15000)}` });
       parts.push({ text: VERIFY_PROMPT });
 
       const { text: aiResponse, modelName } = await generateWithGeminiFallback(parts);
       const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, aiResponse];
       const parsed = JSON.parse((jsonMatch[1] || aiResponse).trim()) as VerificationResult;
 
+      if (files.length > 1) {
+        parsed.content_type = `Batch Audit (${files.length} Files: ${files.map((f) => f.name).join(", ")})`;
+      }
+
       return {
         result: parsed,
         isLiveAI: true,
-        engineMessage: `Verified live with Google Gemini (${modelName})`,
+        engineMessage: `Verified ${files.length > 1 ? `${files.length} files ` : ""}live with Google Gemini (${modelName})`,
       };
     } catch (err) {
       console.warn("Gemini call failed, falling back to local engine:", (err as Error)?.message);
@@ -300,10 +321,13 @@ export async function verifyContent(request: VerifyRequest): Promise<{
 
   // Local fallback: RAG against knowledge base
   const result = localVerification(contentText);
+  if (files.length > 1) {
+    result.content_type = `Batch Audit (${files.length} Files: ${files.map((f) => f.name).join(", ")})`;
+  }
   return {
     result,
     isLiveAI: false,
-    engineMessage: "Verified with local knowledge base engine (offline mode)",
+    engineMessage: `Verified ${files.length > 1 ? `${files.length} files ` : ""}with local knowledge base engine (offline mode)`,
   };
 }
 
