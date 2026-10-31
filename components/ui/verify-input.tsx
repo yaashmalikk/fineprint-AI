@@ -416,14 +416,12 @@ export function VerifyInput({
         </div>
       )}
 
-      {/* Stepper */}
+      {/* Progress */}
       {isVerifying && (
         <div className="mt-4 rounded-xl border border-sky-500/30 bg-sky-950/60 p-3">
           <div className="flex items-center justify-between text-xs text-sky-200">
-            <span className="font-mono">
-              Stage {scanStep + 1} of {PIPELINE_STAGES.length}
-            </span>
-            <span className="animate-pulse">{PIPELINE_STAGES[scanStep].detail}</span>
+            <span className="font-medium">Analyzing claims against verified legal precedents...</span>
+            <span className="animate-pulse font-mono">Verifying</span>
           </div>
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
@@ -455,7 +453,7 @@ export function VerifyInput({
           <Zap className="size-4" />
         )}
         {isVerifying
-          ? "Verifying with RAG Pipeline..."
+          ? "Verifying Claims..."
           : mode === "document" && selectedFiles.length > 1
             ? `Verify & Cross-Audit ${selectedFiles.length} Documents`
             : "Verify & Extract Claims"}

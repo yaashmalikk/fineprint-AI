@@ -623,31 +623,10 @@ export function VerifyAIBento({
   return (
     <section className={`w-full text-foreground ${className}`}>
       {/* Top Header */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2">
-          {engineNotice && (
-            <span className="rounded-full bg-white/10 px-3 py-1 font-mono text-[11px] text-white/80 border border-white/15">
-              {engineNotice}
-            </span>
-          )}
-          {isLiveAI && (
-            <span className="rounded-full bg-emerald-500/20 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300 border border-emerald-500/30">
-              Live Gemini AI
-            </span>
-          )}
-        </div>
+      <div className="mb-4 flex flex-wrap items-center justify-end gap-3 text-xs">
         <span className="rounded-full bg-white px-3 py-1.5 font-semibold text-slate-950 text-xs">
           {activeResult.content_type}
         </span>
-      </div>
-
-      {/* Pipeline Indicator */}
-      <div className="mb-4">
-        <PipelineIndicator
-          currentStage={pipelineStage}
-          claimsCount={activeResult.claims.length}
-          sourcesCount={totalSources}
-        />
       </div>
 
       {/* Bento Grid */}

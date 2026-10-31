@@ -91,21 +91,11 @@ export function CloudShaderHeroDemo() {
             Claim Verifier
           </a>
           <a href="#verify" className="hover:text-white transition">
-            Evidence RAG
+            Precedent Database
           </a>
           <a href="#verify" className="hover:text-white transition">
-            Knowledge Base
+            Legal Audit
           </a>
-          <div
-            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-mono border transition-colors ${
-              isDark
-                ? "bg-zinc-900/80 text-zinc-300 border-zinc-800"
-                : "bg-white/10 text-white/90 border-white/20"
-            }`}
-          >
-            <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>NLP Pipeline</span>
-          </div>
         </div>
 
         {/* Top-Right Controls */}
@@ -147,15 +137,7 @@ export function CloudShaderHeroDemo() {
             isDark ? "text-zinc-400" : "text-white/95"
           }`}
         >
-          Extract factual claims from online content, retrieve credible sources via{" "}
-          <strong
-            className={`font-semibold underline ${
-              isDark ? "text-white decoration-zinc-600" : "text-white underline decoration-white/40"
-            }`}
-          >
-            semantic RAG
-          </strong>
-          , compare evidence, and present transparent assessments — no black-box AI verdicts.
+          Extract factual claims from documents or content, compare against verified legal precedents, and present transparent evidence assessments — no black-box assumptions.
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
@@ -221,30 +203,6 @@ export function CloudShaderHeroDemo() {
                   Paste content or upload a document to extract and verify claims
                 </p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {engineMessage && (
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-[11px] border transition-colors ${
-                    isDark
-                      ? "border border-zinc-800 bg-zinc-900/80 text-zinc-300"
-                      : "border border-white/20 bg-white/10 text-white/80"
-                  }`}
-                >
-                  {engineMessage}
-                </span>
-              )}
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-mono text-xs transition-colors ${
-                  isDark
-                    ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                    : "border border-emerald-500/40 bg-emerald-500/15 text-emerald-300"
-                }`}
-              >
-                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                NLP + RAG Pipeline Active
-              </span>
             </div>
           </div>
 
