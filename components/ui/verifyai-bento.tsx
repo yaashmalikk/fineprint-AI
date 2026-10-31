@@ -120,15 +120,18 @@ function CredibilityScoreTile({
   score,
   verdict,
   claimsCount,
+  isInvalid = false,
 }: {
   score: number;
   verdict: string;
   claimsCount: number;
+  isInvalid?: boolean;
 }) {
+  const displayScore = isInvalid ? 0 : Math.max(0, Math.min(100, score));
   const color =
-    score >= 70
+    displayScore >= 70
       ? "oklch(0.72 0.17 155)"
-      : score >= 40
+      : displayScore >= 40
         ? "oklch(0.78 0.17 75)"
         : "oklch(0.65 0.24 25)";
 
@@ -145,17 +148,17 @@ function CredibilityScoreTile({
         <div className="mt-3 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-lg font-bold tracking-tight text-white sm:text-2xl">
-              {getCredibilityLabel(score)}
+              {getCredibilityLabel(displayScore)}
             </h2>
             <p className="mt-1 text-xs text-white/60 max-w-md">{verdict}</p>
           </div>
           <div className="text-right shrink-0">
             <div className="text-3xl font-extrabold font-mono" style={{ color }}>
-              {score}
+              {displayScore}
               <span className="text-sm font-normal text-white/40">/100</span>
             </div>
             <p className="text-[11px] font-semibold" style={{ color }}>
-              {claimsCount} Claims Analyzed
+              {isInvalid ? "0 Claims Valid" : `${claimsCount} Claims Analyzed`}
             </p>
           </div>
         </div>
@@ -166,14 +169,14 @@ function CredibilityScoreTile({
         <div className="flex items-center justify-between text-xs text-white/60">
           <span>Overall Credibility Score</span>
           <span className="font-mono text-white/80">
-            {score >= 70 ? "Credible" : score >= 40 ? "Mixed" : "Misinformation"}
+            {displayScore === 0 ? "0% (Rejected / Dummy Text)" : displayScore >= 70 ? "Credible" : displayScore >= 40 ? "Mixed" : "Misinformation"}
           </span>
         </div>
         <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{
-              width: `${score}%`,
+              width: `${displayScore}%`,
               background: `linear-gradient(90deg, ${color}, ${color}88)`,
             }}
           />
@@ -236,20 +239,21 @@ function StatsSummaryTile({
 /* ──────────────── conflict gauge tile ─────────────────────── */
 
 function ConflictGaugeTile({
-  score,
+  credibilityScore,
   totalClaims,
+  isInvalid = false,
 }: {
-  score: number;
+  credibilityScore: number;
   totalClaims: number;
+  isInvalid?: boolean;
 }) {
+  const displayCredibility = isInvalid ? 0 : Math.max(0, Math.min(100, credibilityScore));
   const color =
-    score >= 70
-      ? "oklch(0.65 0.24 25)"
-      : score >= 40
+    displayCredibility >= 70
+      ? "oklch(0.72 0.17 155)"
+      : displayCredibility >= 40
         ? "oklch(0.78 0.17 75)"
-        : "oklch(0.72 0.17 155)";
-
-  const inverseScore = 100 - score; // credibility
+        : "oklch(0.65 0.24 25)";
 
   return (
     <Tile title="Evidence Conflict Index" className="lg:col-start-4">
@@ -265,23 +269,31 @@ function ConflictGaugeTile({
               stroke={color}
               strokeWidth="10"
               strokeDasharray="251.2"
-              strokeDashoffset={251.2 - (inverseScore / 100) * 251.2}
+              strokeDashoffset={251.2 - (displayCredibility / 100) * 251.2}
               strokeLinecap="round"
               className="transition-all duration-700"
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="font-mono text-2xl font-black text-white">{inverseScore}%</span>
+            <span className="font-mono text-2xl font-black text-white">{displayCredibility}%</span>
             <span className="text-[10px] uppercase tracking-wider text-white/50">
-              Credibility
+              {isInvalid ? "0% Credibility" : "Credibility"}
             </span>
           </div>
         </div>
 
         <div className="mt-3">
-          <p className="text-xs text-white/60">{totalClaims} Claims Evaluated</p>
+          <p className="text-xs text-white/60">
+            {isInvalid ? "Dummy / Unverifiable" : `${totalClaims} Claims Evaluated`}
+          </p>
           <p className="font-mono text-sm font-bold" style={{ color }}>
-            {score >= 70 ? "High Conflict" : score >= 40 ? "Moderate Conflict" : "Low Conflict"}
+            {isInvalid
+              ? "100% Conflict (Rejected)"
+              : displayCredibility >= 70
+                ? "Low Conflict / Verified"
+                : displayCredibility >= 40
+                  ? "Moderate Conflict"
+                  : "High Conflict / Misinformation"}
           </p>
         </div>
       </div>
@@ -597,10 +609,12 @@ export function VerifyAIBento({
 
   const activeResult = result || MOCK_VERIFICATION_RESULT;
 
-  const avgConflict =
-    activeResult.claims.length > 0
-      ? Math.round(activeResult.claims.reduce((s, c) => s + c.conflict_score, 0) / activeResult.claims.length)
-      : 0;
+  const isInvalid =
+    activeResult.overall_credibility_score <= 0 ||
+    activeResult.is_valid_factual_content === false ||
+    activeResult.content_type.toLowerCase().includes("unverifiable") ||
+    activeResult.content_type.toLowerCase().includes("dummy") ||
+    activeResult.misinformation_verdict.toLowerCase().includes("rejected");
 
   const totalSources = activeResult.claims.reduce(
     (s, c) => s + (c.evidence.relevance_rank > 0 ? 1 : 0),
@@ -643,11 +657,16 @@ export function VerifyAIBento({
           score={activeResult.overall_credibility_score}
           verdict={activeResult.misinformation_verdict}
           claimsCount={activeResult.claims.length}
+          isInvalid={isInvalid}
         />
 
         <StatsSummaryTile claims={activeResult.claims} />
 
-        <ConflictGaugeTile score={avgConflict} totalClaims={activeResult.claims.length} />
+        <ConflictGaugeTile
+          credibilityScore={activeResult.overall_credibility_score}
+          totalClaims={activeResult.claims.length}
+          isInvalid={isInvalid}
+        />
 
         {/* Evidence Comparison Grid */}
         <div className="sm:col-span-2 lg:col-span-4">

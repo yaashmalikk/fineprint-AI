@@ -69,6 +69,7 @@ export const PIPELINE_STAGES: PipelineProgress[] = [
 ];
 
 export function getCredibilityLabel(score: number): string {
+  if (score <= 0) return "0% Credibility – Rejected (Dummy / Unverifiable Text)";
   if (score >= 80) return "High Credibility";
   if (score >= 60) return "Mostly Credible";
   if (score >= 40) return "Mixed Credibility";
