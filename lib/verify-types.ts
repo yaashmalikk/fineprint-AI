@@ -29,6 +29,8 @@ export interface VerificationResult {
   misinformation_verdict: string;
   claims: VerifiedClaim[];
   transparent_summary: string;
+  is_valid_factual_content?: boolean;
+  verdict_summary?: string;
 }
 
 export type InputMode = "document" | "online";

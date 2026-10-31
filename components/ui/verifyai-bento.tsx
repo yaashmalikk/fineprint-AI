@@ -653,13 +653,25 @@ export function VerifyAIBento({
         <div className="sm:col-span-2 lg:col-span-4">
           <Tile title="Evidence Comparison Grid">
             <div className="space-y-3">
-              {activeResult.claims.map((claim) => (
-                <EvidenceCard
-                  key={claim.claim_id}
-                  claim={claim}
-                  onViewSource={setSourceModalClaim}
-                />
-              ))}
+              {activeResult.claims.length === 0 ? (
+                <div className="rounded-xl border border-rose-500/20 bg-rose-950/20 p-6 text-center">
+                  <AlertTriangle className="size-8 mx-auto text-rose-400 mb-2" />
+                  <p className="text-sm font-semibold text-rose-200">
+                    {activeResult.verdict_summary || "No factual claims or verifiable real-world legal clauses were found in this text."}
+                  </p>
+                  <p className="text-xs text-rose-300/70 mt-1">
+                    Rejected by ClaimProof AI Zero-Tolerance Claim Extraction Protocol.
+                  </p>
+                </div>
+              ) : (
+                activeResult.claims.map((claim) => (
+                  <EvidenceCard
+                    key={claim.claim_id}
+                    claim={claim}
+                    onViewSource={setSourceModalClaim}
+                  />
+                ))
+              )}
             </div>
           </Tile>
         </div>

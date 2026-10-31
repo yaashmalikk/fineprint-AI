@@ -45,28 +45,11 @@ export function createInvalidContentResult(reason: string, text: string): Verifi
   return {
     content_type: "Unverifiable / Dummy Content",
     overall_credibility_score: 0,
-    misinformation_verdict: `REJECTED: ${reason}`,
-    claims: [
-      {
-        claim_id: "REJECT-001",
-        claim_text: text.trim().slice(0, 180) + (text.length > 180 ? "..." : ""),
-        claim_category: "Factual",
-        verification_status: "DEBUNKED_MISINFORMATION",
-        conflict_score: 100,
-        evidence: {
-          source_title: "Automated Content Integrity Filter",
-          authority: "ClaimProof Verification Protocol",
-          statutory_reference: "NLP Claim Validity Standard",
-          official_text_excerpt: reason,
-          relevance_rank: 1,
-        },
-        evidence_comparison:
-          "The submitted text contains placeholder text, dummy content, or lacks sufficient verifiable factual or legal assertions to evaluate against statutory records.",
-        transparent_explanation:
-          "Verification rejected: Content must contain substantive, real-world claims (minimum 15 words) describing contractual terms, policies, or legal obligations. Dummy text cannot be verified as credible.",
-      },
-    ],
-    transparent_summary: `Verification halted: ${reason} Credibility rating is 0/100 because the content contains no verifiable claims.`,
+    misinformation_verdict: `REJECTED_GIBBERISH_OR_DUMMY_TEXT: ${reason}`,
+    verdict_summary: reason,
+    is_valid_factual_content: false,
+    claims: [],
+    transparent_summary: `Verification halted: ${reason} No factual claims or verifiable real-world legal clauses were found in this text.`,
   };
 }
 
